@@ -25,6 +25,13 @@ body {
   background: var(--bg);
   color: var(--text);
   font-size: 13px;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+input[type="text"], input[type="number"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 header {

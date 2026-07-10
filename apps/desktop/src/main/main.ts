@@ -104,14 +104,18 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: 520,
     height: 720,
-    resizable: false,
+    // Lock the width so only the height is resizable
+    minWidth: 520,
+    maxWidth: 520,
+    minHeight: 520,
     title: "TSPL Print Bridge",
     icon:
       process.platform === "win32"
         ? join(iconsDir(), "windows/icon.ico")
-        : join(iconsDir(), "macos/512x512.png"),
+        : join(iconsDir(), "macos/app-512.png"),
     webPreferences: {
       preload: join(distDir(), "preload/preload.cjs"),
+      devTools: !app.isPackaged,
     },
   });
   win.loadFile(join(distDir(), "renderer/index.html"));
@@ -245,7 +249,7 @@ if (!gotLock) {
     config = loadConfig();
     if (process.platform === "darwin") {
       try {
-        app.dock?.setIcon(join(iconsDir(), "macos/512x512.png"));
+        app.dock?.setIcon(join(iconsDir(), "macos/app-512.png"));
       } catch {}
     }
     registerIpc();
