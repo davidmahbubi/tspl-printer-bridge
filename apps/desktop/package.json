@@ -1,0 +1,20 @@
+{
+  "name": "tspl-bridge-desktop",
+  "version": "0.1.0",
+  "description": "TSPL Print Bridge — local print server untuk printer label TSPL",
+  "private": true,
+  "main": "dist/main/main.cjs",
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "start": "bun run build && electron .",
+    "dist": "bun run build && electron-builder"
+  },
+  "dependencies": {
+    "@node-tsp/core": "workspace:*",
+    "@node-tsp/server": "workspace:*"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}

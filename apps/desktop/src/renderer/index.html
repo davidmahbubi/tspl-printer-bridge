@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'" />
+  <title>TSPL Print Bridge</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header>
+    <h1>TSPL Print Bridge</h1>
+    <div id="status" class="status stopped">
+      <span class="dot"></span><span id="status-text">Berhenti</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Server</h2>
+      <div class="row">
+        <button id="btn-toggle" class="primary">Start Server</button>
+        <span class="hint" id="server-url"></span>
+      </div>
+      <label>Port
+        <input type="number" id="port" min="1024" max="65535" />
+      </label>
+      <label>API Key
+        <div class="row">
+          <input type="text" id="api-key" readonly />
+          <button id="btn-copy-key" title="Salin">Salin</button>
+          <button id="btn-regen-key" title="Generate ulang">↻</button>
+        </div>
+      </label>
+      <label>CORS Origins <span class="hint">("*" = semua, atau daftar origin dipisah koma)</span>
+        <input type="text" id="cors" placeholder="*" />
+      </label>
+    </section>
+
+    <section>
+      <h2>Printer</h2>
+      <label>Printer default
+        <div class="row">
+          <select id="printer"></select>
+          <button id="btn-refresh-printers" title="Muat ulang daftar printer">↻</button>
+        </div>
+      </label>
+      <label>Ukuran label test (mm)
+        <div class="row">
+          <input type="number" id="test-width" min="10" max="300" /> ×
+          <input type="number" id="test-height" min="10" max="300" />
+          <button id="btn-test-print">Test Print</button>
+        </div>
+      </label>
+    </section>
+
+    <section>
+      <h2>Aplikasi</h2>
+      <label class="checkbox">
+        <input type="checkbox" id="autostart" />
+        Jalankan otomatis saat login
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" id="auto-start-server" />
+        Start server otomatis saat aplikasi dibuka
+      </label>
+    </section>
+
+    <div class="row save-row">
+      <button id="btn-save" class="primary">Simpan Pengaturan</button>
+      <span id="save-note" class="hint"></span>
+    </div>
+
+    <section>
+      <h2>Log</h2>
+      <pre id="log"></pre>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

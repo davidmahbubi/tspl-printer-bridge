@@ -4,9 +4,10 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "types": ["bun-types"],
+    "types": ["node"],
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true
   },
-  "exclude": ["node_modules", "apps"]
+  "include": ["src"]
 }
