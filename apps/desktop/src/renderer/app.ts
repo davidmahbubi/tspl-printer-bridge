@@ -49,8 +49,8 @@ function renderStatus(status: ServerStatus): void {
   el.classList.toggle("running", status.running);
   el.classList.toggle("stopped", !status.running);
   $("status-text").textContent = status.running
-    ? `Jalan di :${status.port}`
-    : "Berhenti";
+    ? `Running on :${status.port}`
+    : "Stopped";
   $<HTMLButtonElement>("btn-toggle").textContent = status.running
     ? "Stop Server"
     : "Start Server";
@@ -73,7 +73,7 @@ async function loadPrinters(selected: string): Promise<void> {
   printerSelect.innerHTML = "";
   const empty = document.createElement("option");
   empty.value = "";
-  empty.textContent = "— pilih printer —";
+  empty.textContent = "— select printer —";
   printerSelect.appendChild(empty);
   for (const name of printers) {
     const opt = document.createElement("option");
@@ -137,19 +137,19 @@ async function init(): Promise<void> {
   $("btn-save").addEventListener("click", async () => {
     config = collectConfig(config);
     renderStatus(await window.bridge.saveConfig(config));
-    note("Tersimpan ✓");
+    note("Saved ✓");
   });
 
   $("btn-copy-key").addEventListener("click", () => {
     navigator.clipboard.writeText(apiKeyInput.value);
-    note("API key disalin");
+    note("API key copied");
   });
 
   $("btn-regen-key").addEventListener("click", async () => {
-    if (!confirm("Generate API key baru? Web app yang memakai key lama akan berhenti bisa print.")) return;
+    if (!confirm("Generate a new API key? Web apps using the old key will no longer be able to print.")) return;
     apiKeyInput.value = await window.bridge.regenerateKey();
     config.apiKey = apiKeyInput.value;
-    note("API key baru dibuat");
+    note("New API key generated");
   });
 
   $("btn-refresh-printers").addEventListener("click", () =>
@@ -161,7 +161,7 @@ async function init(): Promise<void> {
     config = collectConfig(config);
     renderStatus(await window.bridge.saveConfig(config));
     const result = await window.bridge.testPrint();
-    note(result.ok ? "Test print terkirim ✓" : `Gagal: ${result.error}`, !result.ok);
+    note(result.ok ? "Test print sent ✓" : `Failed: ${result.error}`, !result.ok);
   });
 }
 

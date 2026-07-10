@@ -51,7 +51,7 @@ export interface BridgeServer {
   onLog(cb: (entry: LogEntry) => void): void;
 }
 
-export const BRIDGE_VERSION = "0.1.0";
+export const BRIDGE_VERSION = "1.0.0";
 const MAX_BODY_BYTES = 1024 * 1024;
 
 function safeEqual(a: string, b: string): boolean {
@@ -82,7 +82,7 @@ function readBody(req: IncomingMessage): Promise<string> {
     req.on("data", (chunk: Buffer) => {
       size += chunk.length;
       if (size > MAX_BODY_BYTES) {
-        reject(new ValidationError("Body terlalu besar (maks 1 MB)"));
+        reject(new ValidationError("Request body too large (max 1 MB)"));
         req.destroy();
         return;
       }
@@ -115,7 +115,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
     const printer = target.printer ?? config.printer;
     if (!printer) {
       throw new ValidationError(
-        "Tidak ada printer: set printer default di aplikasi atau kirim field \"printer\" di payload"
+        "No printer selected: set a default printer in the bridge app or include a \"printer\" field in the payload"
       );
     }
     return new CupsTransport(printer);
@@ -170,8 +170,8 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
     }
 
     if (!authorized(req)) {
-      log("error", `${req.method} ${path} → 401 (API key salah/kosong)`);
-      json(res, 401, { ok: false, error: "API key salah atau tidak dikirim (header X-Api-Key)" });
+      log("error", `${req.method} ${path} → 401 (invalid or missing API key)`);
+      json(res, 401, { ok: false, error: "Invalid or missing API key (X-Api-Key header)" });
       return;
     }
 
@@ -189,7 +189,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
         try {
           parsed = JSON.parse(bodyText);
         } catch {
-          throw new ValidationError("Body bukan JSON valid");
+          throw new ValidationError("Request body is not valid JSON");
         }
         payload = validatePrintPayload(parsed);
       } catch (err) {
@@ -221,7 +221,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
       return;
     }
 
-    json(res, 404, { ok: false, error: `Tidak ada endpoint ${req.method} ${path}` });
+    json(res, 404, { ok: false, error: `No such endpoint: ${req.method} ${path}` });
   };
 
   return {
@@ -241,7 +241,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
         });
         s.listen(port, host, () => {
           server = s;
-          log("info", `Server jalan di http://${host}:${port}`);
+          log("info", `Server listening at http://${host}:${port}`);
           resolve({ port });
         });
       });
@@ -251,7 +251,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
         if (!server) return resolve();
         server.close(() => {
           server = null;
-          log("info", "Server dihentikan");
+          log("info", "Server stopped");
           resolve();
         });
         // Putus koneksi keep-alive supaya close tidak menggantung

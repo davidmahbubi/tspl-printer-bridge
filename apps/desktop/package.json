@@ -1,6 +1,6 @@
 {
   "name": "tspl-bridge-desktop",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "TSPL Print Bridge — local print server untuk printer label TSPL",
   "private": true,
   "author": "David Mahbubi",

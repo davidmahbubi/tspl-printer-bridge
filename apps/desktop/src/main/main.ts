@@ -64,7 +64,7 @@ async function startServer(): Promise<void> {
       pushLog({
         time: new Date().toISOString(),
         level: "error",
-        message: `Gagal start server: ${message}`,
+        message: `Failed to start server: ${message}`,
       });
     }
   }
@@ -108,9 +108,7 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: 520,
     height: 720,
-    minWidth: 476,
-    minHeight: 480,
-    resizable: true,
+    resizable: false,
     title: "TSPL Print Bridge",
     icon:
       process.platform === "win32"
@@ -134,22 +132,26 @@ function refreshTray(): void {
   if (!tray) return;
   const running = server?.isRunning() ?? false;
   tray.setToolTip(
-    running ? `TSPL Bridge — jalan di :${config.port}` : "TSPL Bridge — berhenti"
+    running
+      ? `TSPL Print Bridge — running on :${config.port}`
+      : "TSPL Print Bridge — stopped"
   );
   tray.setContextMenu(
     Menu.buildFromTemplate([
       {
-        label: running ? `Server jalan di port ${config.port}` : "Server berhenti",
+        label: running
+          ? `Server running on port ${config.port}`
+          : "Server stopped",
         enabled: false,
       },
       { type: "separator" },
       running
         ? { label: "Stop Server", click: () => void stopServer() }
         : { label: "Start Server", click: () => void startServer() },
-      { label: "Buka Pengaturan", click: createWindow },
+      { label: "Open Settings", click: createWindow },
       { type: "separator" },
       {
-        label: "Keluar",
+        label: "Quit",
         click: () => {
           quitting = true;
           app.quit();
@@ -181,7 +183,7 @@ function createTray(): void {
 
 async function testPrint(): Promise<{ ok: boolean; error?: string }> {
   if (!config.printer) {
-    return { ok: false, error: "Pilih printer default dulu" };
+    return { ok: false, error: "Select a default printer first" };
   }
   const { width, height } = config.testLabel;
   const label = new TSPL()
@@ -231,6 +233,8 @@ function registerIpc(): void {
   });
   ipcMain.handle("logs:get", () => logs);
 }
+
+app.setName("TSPL Print Bridge");
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {

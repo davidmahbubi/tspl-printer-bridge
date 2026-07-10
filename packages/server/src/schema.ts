@@ -104,21 +104,21 @@ const isStr = (v: unknown): v is string => typeof v === "string";
 
 function validateElement(el: any, i: number): void {
   const at = `elements[${i}]`;
-  need(el && typeof el === "object", `${at} harus object`);
-  need(isStr(el.type), `${at}.type wajib diisi`);
+  need(el && typeof el === "object", `${at} must be an object`);
+  need(isStr(el.type), `${at}.type is required`);
 
   const needXY = () =>
-    need(isNum(el.x) && isNum(el.y), `${at} butuh x dan y (angka, satuan dot)`);
+    need(isNum(el.x) && isNum(el.y), `${at} requires numeric x and y (in dots)`);
 
   switch (el.type) {
     case "text":
     case "block":
       needXY();
-      need(isStr(el.content), `${at}.content wajib string`);
+      need(isStr(el.content), `${at}.content must be a string`);
       if (el.type === "block")
         need(
           isNum(el.width) && isNum(el.height),
-          `${at} butuh width dan height`
+          `${at} requires width and height`
         );
       break;
     case "barcode":
@@ -126,63 +126,63 @@ function validateElement(el: any, i: number): void {
       needXY();
       need(
         isStr(el.content) && el.content.length > 0,
-        `${at}.content wajib string tidak kosong`
+        `${at}.content must be a non-empty string`
       );
       break;
     case "box":
       needXY();
-      need(isNum(el.xEnd) && isNum(el.yEnd), `${at} butuh xEnd dan yEnd`);
+      need(isNum(el.xEnd) && isNum(el.yEnd), `${at} requires xEnd and yEnd`);
       break;
     case "bar":
       needXY();
-      need(isNum(el.width) && isNum(el.height), `${at} butuh width dan height`);
+      need(isNum(el.width) && isNum(el.height), `${at} requires width and height`);
       break;
     default:
       throw new ValidationError(
-        `${at}.type "${el.type}" tidak dikenal (text|block|barcode|qrcode|box|bar)`
+        `${at}.type "${el.type}" is not recognized (text|block|barcode|qrcode|box|bar)`
       );
   }
 }
 
 export function validatePrintPayload(body: any): PrintPayload {
-  need(body && typeof body === "object", "Body harus JSON object");
+  need(body && typeof body === "object", "Body must be a JSON object");
 
   if ("raw" in body) {
     need(
       isStr(body.raw) && body.raw.trim().length > 0,
-      "raw harus string TSPL tidak kosong"
+      "raw must be a non-empty TSPL string"
     );
     return body as RawPayload;
   }
 
   need(
     body.label && typeof body.label === "object",
-    'Butuh "raw" (TSPL mentah) atau "label" + "elements" (declarative)'
+    'Provide "raw" (raw TSPL) or "label" + "elements" (declarative)'
   );
   need(
     isNum(body.label.width) && isNum(body.label.height),
-    "label.width dan label.height wajib angka (mm)"
+    "label.width and label.height must be numbers (mm)"
   );
   if (body.label.density !== undefined)
     need(
       isNum(body.label.density) &&
         body.label.density >= 0 &&
         body.label.density <= 15,
-      "label.density harus 0-15"
+      "label.density must be 0-15"
     );
   if (body.label.copies !== undefined)
     need(
       isNum(body.label.copies) && body.label.copies >= 1,
-      "label.copies harus >= 1"
+      "label.copies must be >= 1"
     );
   if (body.label.cut !== undefined)
     need(
       body.label.cut === "batch" || (isNum(body.label.cut) && body.label.cut >= 1),
-      'label.cut harus angka >= 1 atau "batch"'
+      'label.cut must be a number >= 1 or "batch"'
     );
 
-  need(Array.isArray(body.elements), "elements harus array");
-  need(body.elements.length > 0, "elements tidak boleh kosong");
+  need(Array.isArray(body.elements), "elements must be an array");
+  need(body.elements.length > 0, "elements must not be empty");
   body.elements.forEach(validateElement);
 
   return body as DeclarativePayload;

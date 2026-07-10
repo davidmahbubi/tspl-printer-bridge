@@ -28,6 +28,10 @@ body {
 }
 
 header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -118,3 +122,16 @@ button.primary:hover { filter: brightness(1.08); }
   color: var(--muted);
 }
 #log .err { color: var(--err); }
+
+footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 20px 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+footer .version { font-weight: 600; }

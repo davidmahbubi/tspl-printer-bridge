@@ -37,7 +37,7 @@ export class NetworkTransport implements Transport {
       socket.setTimeout(this.timeoutMs, () =>
         fail(
           new Error(
-            `Timeout ${this.timeoutMs}ms saat mengirim ke ${this.host}:${this.port}`
+            `Timed out after ${this.timeoutMs}ms sending to ${this.host}:${this.port}`
           )
         )
       );
@@ -69,7 +69,7 @@ export class CupsTransport implements Transport {
       proc.on("error", reject);
       proc.on("close", (code) => {
         if (code === 0) resolve();
-        else reject(new Error(`lp gagal (exit ${code}): ${stderr.trim()}`));
+        else reject(new Error(`lp failed (exit ${code}): ${stderr.trim()}`));
       });
       proc.stdin.end(data);
     });

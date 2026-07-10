@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'" />
@@ -10,7 +10,7 @@
   <header>
     <h1>TSPL Print Bridge</h1>
     <div id="status" class="status stopped">
-      <span class="dot"></span><span id="status-text">Berhenti</span>
+      <span class="dot"></span><span id="status-text">Stopped</span>
     </div>
   </header>
 
@@ -23,11 +23,11 @@
       <label>API Key
         <div class="row">
           <input type="text" id="api-key" spellcheck="false" />
-          <button id="btn-copy-key" title="Salin">Salin</button>
-          <button id="btn-regen-key" title="Generate ulang">↻</button>
+          <button id="btn-copy-key" title="Copy">Copy</button>
+          <button id="btn-regen-key" title="Regenerate">↻</button>
         </div>
       </label>
-      <label>CORS Origins <span class="hint">("*" = semua, atau daftar origin dipisah koma)</span>
+      <label>CORS Origins <span class="hint">("*" = any, or comma-separated origins)</span>
         <input type="text" id="cors" placeholder="*" />
       </label>
       <div class="row toggle-row">
@@ -38,13 +38,13 @@
 
     <section>
       <h2>Printer</h2>
-      <label>Printer default
+      <label>Default printer
         <div class="row">
           <select id="printer"></select>
-          <button id="btn-refresh-printers" title="Muat ulang daftar printer">↻</button>
+          <button id="btn-refresh-printers" title="Reload printer list">↻</button>
         </div>
       </label>
-      <label>Ukuran label test (mm)
+      <label>Test label size (mm)
         <div class="row">
           <input type="number" id="test-width" min="10" max="300" /> ×
           <input type="number" id="test-height" min="10" max="300" />
@@ -54,19 +54,19 @@
     </section>
 
     <section>
-      <h2>Aplikasi</h2>
+      <h2>Application</h2>
       <label class="checkbox">
         <input type="checkbox" id="autostart" />
-        Jalankan otomatis saat login
+        Launch at login
       </label>
       <label class="checkbox">
         <input type="checkbox" id="auto-start-server" />
-        Start server otomatis saat aplikasi dibuka
+        Start server automatically when the app opens
       </label>
     </section>
 
     <div class="row save-row">
-      <button id="btn-save" class="primary">Simpan Pengaturan</button>
+      <button id="btn-save" class="primary">Save Settings</button>
       <span id="save-note" class="hint"></span>
     </div>
 
@@ -75,6 +75,11 @@
       <pre id="log"></pre>
     </section>
   </main>
+
+  <footer>
+    <span class="version">v1.0.0</span>
+    <span>Made with ❤️ by David Mahbubi | CV. Bion Solution Technology</span>
+  </footer>
 
   <script type="module" src="./app.js"></script>
 </body>
