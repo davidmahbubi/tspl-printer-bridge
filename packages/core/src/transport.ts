@@ -1,5 +1,5 @@
-// Transport pengiriman raw TSPL ke printer. Sengaja hanya memakai API Node
-// (bukan Bun.*) supaya bisa jalan di Electron main process.
+// Transports for sending raw TSPL to printers. Deliberately uses only Node
+// APIs (no Bun.*) so it can run inside the Electron main process.
 import { Socket } from "node:net";
 import { spawn } from "node:child_process";
 import { writeFile } from "node:fs/promises";
@@ -47,7 +47,7 @@ export class NetworkTransport implements Transport {
   }
 }
 
-/** Kirim via antrian CUPS dengan mode raw. Nama printer: lihat `lpstat -p`. */
+/** Send through a CUPS queue in raw mode. Printer names: see `lpstat -p`. */
 export class CupsTransport implements Transport {
   constructor(private printerName: string) {}
 
@@ -68,7 +68,7 @@ export class CupsTransport implements Transport {
   }
 }
 
-/** Tulis langsung ke device path, mis. /dev/usb/lp0 (Linux). */
+/** Write directly to a device path, e.g. /dev/usb/lp0 (Linux). */
 export class FileTransport implements Transport {
   constructor(private path: string) {}
 

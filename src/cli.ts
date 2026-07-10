@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 /**
- * CLI untuk print label TSPL.
+ * TSPL label printing CLI.
  *
- * Contoh:
+ * Examples:
  *   bun run src/cli.ts --host 192.168.1.50 --text "Halo Dunia"
  *   bun run src/cli.ts --printer TSC_TE244 --text "Produk A" --barcode 8991234567890
  *   bun run src/cli.ts --host 192.168.1.50 --file label.tspl

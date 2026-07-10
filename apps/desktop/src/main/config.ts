@@ -8,11 +8,11 @@ export interface AppConfig {
   apiKey: string;
   printer: string;
   corsOrigins: string;
-  /** Buka aplikasi saat login OS */
+  /** Open the app at OS login */
   autostart: boolean;
-  /** Start server otomatis saat aplikasi dibuka */
+  /** Start the server automatically when the app opens */
   autoStartServer: boolean;
-  /** Ukuran label untuk tombol Test Print (mm) */
+  /** Label size for the Test Print button (mm) */
   testLabel: { width: number; height: number };
 }
 

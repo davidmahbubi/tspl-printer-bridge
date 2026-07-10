@@ -1,4 +1,4 @@
-export {}; // jadikan module supaya declare global valid
+export {}; // make this a module so `declare global` is valid
 
 interface AppConfig {
   port: number;
@@ -157,7 +157,7 @@ async function init(): Promise<void> {
   );
 
   $("btn-test-print").addEventListener("click", async () => {
-    // Simpan dulu supaya printer & ukuran label test terpakai
+    // Save first so the selected printer & test label size take effect
     config = collectConfig(config);
     renderStatus(await window.bridge.saveConfig(config));
     const result = await window.bridge.testPrint();

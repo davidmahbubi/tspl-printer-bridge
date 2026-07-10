@@ -1,10 +1,10 @@
 /**
- * Contoh: label pengiriman 78x100 mm dengan barcode resi + QR code.
+ * Example: 78x100 mm shipping label with a tracking barcode + QR code.
  *
- * Jalankan:
+ * Run:
  *   bun run examples/shipping-label.ts                              # dry run
- *   bun run examples/shipping-label.ts --host 192.168.1.50          # printer jaringan
- *   bun run examples/shipping-label.ts --printer CXPrinter_DT_369   # printer USB/CUPS
+ *   bun run examples/shipping-label.ts --host 192.168.1.50          # network printer
+ *   bun run examples/shipping-label.ts --printer CXPrinter_DT_369   # USB/CUPS printer
  */
 import { parseArgs } from "util";
 import {
@@ -23,7 +23,7 @@ const { values } = parseArgs({
   },
 });
 
-// Label 78 x 100 mm @ 203 dpi (8 dot/mm) = 624 x 800 dot
+// 78 x 100 mm label @ 203 dpi (8 dots/mm) = 624 x 800 dots
 const label = new TSPL()
   .size(78, 100)
   .gap(3)

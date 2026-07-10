@@ -1,4 +1,4 @@
-// TSPL/TSPL2 command builder. Satuan koordinat: dot (203 dpi = 8 dot/mm).
+// TSPL/TSPL2 command builder. Coordinate unit: dots (203 dpi = 8 dots/mm).
 
 export type Rotation = 0 | 90 | 180 | 270;
 
@@ -25,7 +25,7 @@ export type BarcodeType =
 export interface TextOptions {
   x: number;
   y: number;
-  /** Nama font internal printer: "1".."8", "TSS24.BF2", "0" (scalable), dll. */
+  /** Printer-internal font name: "1".."8", "TSS24.BF2", "0" (scalable), etc. */
   font?: string;
   rotation?: Rotation;
   xMultiplier?: number;
@@ -36,9 +36,9 @@ export interface BarcodeOptions {
   x: number;
   y: number;
   type?: BarcodeType;
-  /** Tinggi barcode dalam dot */
+  /** Barcode height in dots */
   height?: number;
-  /** 0 = tanpa teks, 1 = teks di bawah barcode */
+  /** 0 = no text, 1 = text below the barcode */
   humanReadable?: 0 | 1 | 2 | 3;
   rotation?: Rotation;
   narrow?: number;
@@ -49,37 +49,37 @@ export interface QrCodeOptions {
   x: number;
   y: number;
   eccLevel?: "L" | "M" | "Q" | "H";
-  /** Ukuran cell 1-10 */
+  /** Cell size 1-10 */
   cellWidth?: number;
   mode?: "A" | "M";
   rotation?: Rotation;
 }
 
 function esc(content: string): string {
-  // Tanda kutip ganda di TSPL ditulis sebagai \["]
+  // Double quotes are written as \["] in TSPL
   return content.replace(/\\/g, "\\\\").replace(/"/g, '\\["]');
 }
 
 export class TSPL {
   private commands: string[] = [];
 
-  /** Tambah perintah TSPL mentah. */
+  /** Append a raw TSPL command. */
   raw(command: string): this {
     this.commands.push(command);
     return this;
   }
 
-  /** Ukuran label dalam mm. */
+  /** Label size in mm. */
   size(widthMm: number, heightMm: number): this {
     return this.raw(`SIZE ${widthMm} mm,${heightMm} mm`);
   }
 
-  /** Jarak gap antar label dalam mm (label die-cut). */
+  /** Gap between labels in mm (die-cut labels). */
   gap(gapMm: number, offsetMm = 0): this {
     return this.raw(`GAP ${gapMm} mm,${offsetMm} mm`);
   }
 
-  /** Untuk media continuous (tanpa gap). */
+  /** For continuous media (no gap). */
   gapNone(): this {
     return this.raw("GAP 0,0");
   }
@@ -89,45 +89,44 @@ export class TSPL {
     return this.raw(`BLINE ${heightMm} mm,${offsetMm} mm`);
   }
 
-  /** Arah cetak: 0 atau 1. */
+  /** Print direction: 0 or 1. */
   direction(dir: 0 | 1, mirror: 0 | 1 = 0): this {
     return this.raw(`DIRECTION ${dir},${mirror}`);
   }
 
-  /** Titik referensi koordinat. */
+  /** Coordinate reference point. */
   reference(x: number, y: number): this {
     return this.raw(`REFERENCE ${x},${y}`);
   }
 
-  /** Kepekatan cetak 0-15. */
+  /** Print density 0-15. */
   density(level: number): this {
     return this.raw(`DENSITY ${level}`);
   }
 
-  /** Kecepatan cetak (inch/detik), tergantung model printer. */
+  /** Print speed (inches/second), depends on the printer model. */
   speed(speed: number): this {
     return this.raw(`SPEED ${speed}`);
   }
 
-  /** Set codepage, mis. "UTF-8", "850", "1252". */
+  /** Set the codepage, e.g. "UTF-8", "850", "1252". */
   codepage(page: string): this {
     return this.raw(`CODEPAGE ${page}`);
   }
 
   /**
-   * Berhenti di posisi sobek/pembatas label setelah cetak (tear-off).
-   * Printer akan memajukan label ke pembatas, lalu menariknya kembali
-   * (backfeed) sebelum mencetak label berikutnya.
+   * Stop at the tear-off position after printing. The printer feeds the
+   * label to the boundary, then backfeeds before printing the next one.
    */
   setTear(on: boolean): this {
     return this.raw(`SET TEAR ${on ? "ON" : "OFF"}`);
   }
 
   /**
-   * Atur cutter (untuk printer yang punya pisau pemotong):
-   * - false   → nonaktif
-   * - "batch" → potong sekali di akhir job
-   * - n       → potong setiap n label
+   * Configure the cutter (printers with a blade):
+   * - false   → disabled
+   * - "batch" → cut once at the end of the job
+   * - n       → cut every n labels
    */
   setCutter(mode: false | "batch" | number): this {
     const value =
@@ -135,17 +134,17 @@ export class TSPL {
     return this.raw(`SET CUTTER ${value}`);
   }
 
-  /** Potong kertas sekarang (printer dengan cutter). */
+  /** Cut the paper now (printers with a cutter). */
   cut(): this {
     return this.raw("CUT");
   }
 
-  /** Geser posisi berhenti label dalam mm (kalibrasi posisi sobek/potong). */
+  /** Shift the label stop position in mm (tear/cut position calibration). */
   offset(mm: number): this {
     return this.raw(`OFFSET ${mm} mm`);
   }
 
-  /** Bersihkan image buffer — wajib sebelum menggambar label baru. */
+  /** Clear the image buffer — required before drawing a new label. */
   cls(): this {
     return this.raw("CLS");
   }
@@ -164,7 +163,7 @@ export class TSPL {
     );
   }
 
-  /** Teks multi-baris dalam area tertentu (TSPL2 BLOCK). */
+  /** Multi-line text within an area (TSPL2 BLOCK). */
   block(
     content: string,
     opts: TextOptions & { width: number; height: number }
@@ -214,12 +213,12 @@ export class TSPL {
     );
   }
 
-  /** Garis/kotak isi penuh. */
+  /** Filled line/box. */
   bar(x: number, y: number, width: number, height: number): this {
     return this.raw(`BAR ${x},${y},${width},${height}`);
   }
 
-  /** Kotak outline. */
+  /** Outlined box. */
   box(
     x: number,
     y: number,
@@ -230,27 +229,27 @@ export class TSPL {
     return this.raw(`BOX ${x},${y},${xEnd},${yEnd},${thickness}`);
   }
 
-  /** Cetak: sets = jumlah set label, copies = salinan per set. */
+  /** Print: sets = number of label sets, copies = copies per set. */
   print(sets = 1, copies = 1): this {
     return this.raw(`PRINT ${sets},${copies}`);
   }
 
-  /** Umpan satu label kosong. */
+  /** Feed one blank label. */
   formfeed(): this {
     return this.raw("FORMFEED");
   }
 
-  /** Kalibrasi gap sensor. */
+  /** Calibrate the gap sensor. */
   gapDetect(): this {
     return this.raw("GAPDETECT");
   }
 
-  /** Test print konfigurasi printer. */
+  /** Print the printer's self-test configuration page. */
   selfTest(): this {
     return this.raw("SELFTEST");
   }
 
-  /** Suara beep. */
+  /** Beep. */
   sound(level = 2, intervalMs = 100): this {
     return this.raw(`SOUND ${level},${intervalMs}`);
   }

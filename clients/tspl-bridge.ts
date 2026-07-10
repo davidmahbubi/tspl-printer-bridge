@@ -1,8 +1,8 @@
 /**
- * Client helper untuk TSPL Print Bridge — salin file ini ke web app Anda.
- * Tidak ada dependensi; jalan di browser mana pun yang mendukung fetch.
+ * Client helper for TSPL Print Bridge — copy this file into your web app.
+ * No dependencies; works in any browser that supports fetch.
  *
- * Contoh:
+ * Example:
  *   const bridge = new TsplBridge({ apiKey: "..." });
  *   if (await bridge.isAvailable()) {
  *     await bridge.print({
@@ -16,7 +16,7 @@
  */
 
 export interface TsplBridgeOptions {
-  /** URL bridge, default http://127.0.0.1:9123 */
+  /** Bridge URL, defaults to http://127.0.0.1:9123 */
   url?: string;
   apiKey: string;
 }
@@ -44,7 +44,7 @@ export type Element =
 export interface PrintRequest {
   label: LabelConfig;
   elements: Element[];
-  /** Override printer default yang diset di aplikasi bridge */
+  /** Override the default printer configured in the bridge app */
   printer?: string;
 }
 
@@ -76,7 +76,7 @@ export class TsplBridge {
       });
     } catch {
       throw new TsplBridgeError(
-        "TSPL Bridge tidak bisa dihubungi — pastikan aplikasinya jalan"
+        "Could not reach TSPL Bridge — make sure the app is running"
       );
     }
     const body = await res.json().catch(() => ({}));
@@ -86,7 +86,7 @@ export class TsplBridge {
     return body;
   }
 
-  /** Cek apakah bridge jalan (tanpa API key). */
+  /** Check whether the bridge is running (no API key needed). */
   async isAvailable(): Promise<boolean> {
     try {
       const res = await fetch(this.url + "/health");
@@ -97,12 +97,12 @@ export class TsplBridge {
     }
   }
 
-  /** Daftar printer yang tersedia di komputer user. */
+  /** List printers available on the user's computer. */
   async printers(): Promise<{ printers: string[]; default: string | null }> {
     return this.request("/printers");
   }
 
-  /** Print label mode declarative. */
+  /** Print a label using the declarative mode. */
   async print(request: PrintRequest): Promise<void> {
     await this.request("/print", {
       method: "POST",
@@ -110,7 +110,7 @@ export class TsplBridge {
     });
   }
 
-  /** Print TSPL mentah (kontrol penuh). */
+  /** Print raw TSPL (full control). */
   async printRaw(tspl: string, printer?: string): Promise<void> {
     await this.request("/print", {
       method: "POST",

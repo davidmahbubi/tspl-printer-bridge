@@ -1,4 +1,4 @@
-/** Build main/preload (cjs, node) + renderer (browser) + salin aset statis. */
+/** Build main/preload (cjs, node) + renderer (browser) and copy static assets. */
 import { $ } from "bun";
 import { join } from "node:path";
 

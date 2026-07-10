@@ -1,8 +1,8 @@
 /**
- * Saat dev, macOS menampilkan nama "Electron" di menu bar & dock karena
- * nama diambil dari Info.plist Electron.app di node_modules — bukan dari
- * app.setName(). Script ini mem-patch plist tersebut lalu re-sign ad-hoc
- * (wajib di Apple Silicon setelah bundle berubah). Idempotent.
+ * In development, macOS shows "Electron" in the menu bar & dock because the
+ * name comes from Electron.app's Info.plist in node_modules — not from
+ * app.setName(). This script patches that plist and re-signs ad-hoc
+ * (required on Apple Silicon after the bundle changes). Idempotent.
  */
 import { $ } from "bun";
 import { existsSync } from "node:fs";
@@ -19,7 +19,7 @@ const electronApp = join(
 const plist = join(electronApp, "Contents/Info.plist");
 
 if (!existsSync(plist)) {
-  console.error("Electron.app tidak ditemukan:", electronApp);
+  console.error("Electron.app not found:", electronApp);
   process.exit(1);
 }
 
@@ -36,4 +36,4 @@ try {
   await $`/usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string ${APP_NAME}" ${plist}`.quiet();
 }
 await $`codesign --force --sign - ${electronApp}`.quiet();
-console.log(`Nama dev app diubah ke "${APP_NAME}"`);
+console.log(`Dev app name set to "${APP_NAME}"`);

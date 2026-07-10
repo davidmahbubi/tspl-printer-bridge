@@ -22,8 +22,8 @@ import {
   type AppConfig,
 } from "./config";
 
-// Path aset di-resolve dari app path, bukan __dirname — bundler Bun
-// mengganti __dirname secara statis ke direktori source.
+// Asset paths are resolved from the app path, not __dirname — Bun's bundler
+// statically replaces __dirname with the source directory.
 const distDir = () => join(app.getAppPath(), "dist");
 const iconsDir = () => join(distDir(), "assets/icons");
 
@@ -237,7 +237,7 @@ if (!gotLock) {
   app.on("second-instance", createWindow);
   app.on("before-quit", () => (quitting = true));
   app.on("window-all-closed", () => {
-    // Tetap jalan di tray — jangan quit
+    // Keep running in the tray — don't quit
   });
   app.on("activate", createWindow);
 

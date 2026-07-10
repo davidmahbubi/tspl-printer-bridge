@@ -1,23 +1,23 @@
 import { TSPL, type BarcodeType, type Rotation } from "@node-tsp/core";
 
 export interface LabelConfig {
-  /** Lebar label dalam mm */
+  /** Label width in mm */
   width: number;
-  /** Tinggi label dalam mm */
+  /** Label height in mm */
   height: number;
-  /** Gap antar label dalam mm (default 2) */
+  /** Gap between labels in mm (default 2) */
   gap?: number;
-  /** Berhenti di pembatas label setelah cetak */
+  /** Stop at the label boundary after printing */
   tear?: boolean;
-  /** Potong tiap n label atau "batch" (printer dengan cutter) */
+  /** Cut every n labels or "batch" (printers with a cutter) */
   cut?: number | "batch";
-  /** Geser posisi berhenti/sobek dalam mm */
+  /** Shift the stop/tear position in mm */
   offset?: number;
-  /** Kepekatan cetak 0-15 */
+  /** Print density 0-15 */
   density?: number;
-  /** Arah cetak (default 1) */
+  /** Print direction (default 1) */
   direction?: 0 | 1;
-  /** Jumlah salinan (default 1) */
+  /** Number of copies (default 1) */
   copies?: number;
 }
 

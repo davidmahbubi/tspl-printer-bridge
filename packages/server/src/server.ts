@@ -18,7 +18,7 @@ export interface BridgeConfig {
   apiKey: string;
   printer?: string;
   corsOrigins?: string;
-  /** Default 127.0.0.1 — jangan bind ke alamat lain kecuali paham risikonya */
+  /** Defaults to 127.0.0.1 — don't bind elsewhere unless you understand the risk */
   host?: string;
   transportFactory?: (target: PrintTarget) => Transport;
 }
@@ -244,7 +244,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
           log("info", "Server stopped");
           resolve();
         });
-        // Putus koneksi keep-alive supaya close tidak menggantung
+        // Drop keep-alive connections so close() doesn't hang
         server.closeAllConnections?.();
       });
     },
