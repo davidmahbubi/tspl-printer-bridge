@@ -7,6 +7,7 @@ import {
   Tray,
 } from "electron";
 import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import {
   createBridgeServer,
   listPrinters,
@@ -20,6 +21,14 @@ import {
   saveConfig,
   type AppConfig,
 } from "./config";
+
+/**
+ * Path aset di-resolve dari app path (bukan __dirname — bundler Bun
+ * mengganti __dirname secara statis ke direktori source).
+ * Dev: apps/desktop/dist, packaged: app.asar/dist.
+ */
+const distDir = () => join(app.getAppPath(), "dist");
+const iconsDir = () => join(distDir(), "assets/icons");
 
 let config: AppConfig;
 let server: BridgeServer | null = null;
@@ -99,13 +108,19 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: 520,
     height: 720,
+    minWidth: 476,
+    minHeight: 480,
     resizable: true,
     title: "TSPL Print Bridge",
+    icon:
+      process.platform === "win32"
+        ? join(iconsDir(), "windows/icon.ico")
+        : join(iconsDir(), "macos/512x512.png"),
     webPreferences: {
-      preload: join(__dirname, "../preload/preload.cjs"),
+      preload: join(distDir(), "preload/preload.cjs"),
     },
   });
-  win.loadFile(join(__dirname, "../renderer/index.html"));
+  win.loadFile(join(distDir(), "renderer/index.html"));
   win.on("close", (event) => {
     if (!quitting) {
       event.preventDefault();
@@ -145,10 +160,20 @@ function refreshTray(): void {
 }
 
 function createTray(): void {
-  const iconFile =
-    process.platform === "win32" ? "tray-win.png" : "trayTemplate.png";
-  const icon = nativeImage.createFromPath(join(__dirname, "../assets", iconFile));
-  if (process.platform === "darwin") icon.setTemplateImage(true);
+  let icon: Electron.NativeImage;
+  if (process.platform === "win32") {
+    icon = nativeImage.createFromPath(join(iconsDir(), "windows/icon.ico"));
+  } else {
+    icon = nativeImage.createFromPath(join(iconsDir(), "macos/16x16.png"));
+    try {
+      icon.addRepresentation({
+        scaleFactor: 2,
+        buffer: readFileSync(join(iconsDir(), "macos/32x32.png")),
+      });
+    } catch {
+      // tanpa varian retina juga tidak apa-apa
+    }
+  }
   tray = new Tray(icon);
   tray.on("double-click", createWindow);
   refreshTray();
@@ -220,6 +245,13 @@ if (!gotLock) {
 
   void app.whenReady().then(async () => {
     config = loadConfig();
+    if (process.platform === "darwin") {
+      try {
+        app.dock?.setIcon(join(iconsDir(), "macos/512x512.png"));
+      } catch {
+        // packaged app sudah pakai icns dari installer
+      }
+    }
     registerIpc();
     createTray();
     createWindow();

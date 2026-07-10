@@ -36,5 +36,5 @@ for (const result of [main, preload, renderer]) {
 }
 
 await $`cp src/renderer/index.html src/renderer/style.css dist/renderer/`;
-await $`bun run scripts/gen-icons.ts`;
+await $`mkdir -p dist/assets && cp -R assets/icons dist/assets/`;
 console.log("Build selesai → dist/");

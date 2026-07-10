@@ -88,6 +88,7 @@ function collectConfig(base: AppConfig): AppConfig {
   return {
     ...base,
     port: Number(portInput.value) || 9123,
+    apiKey: apiKeyInput.value.trim() || base.apiKey,
     printer: printerSelect.value,
     corsOrigins: corsInput.value.trim() || "*",
     autostart: autostartCheck.checked,

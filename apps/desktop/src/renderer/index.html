@@ -17,16 +17,12 @@
   <main>
     <section>
       <h2>Server</h2>
-      <div class="row">
-        <button id="btn-toggle" class="primary">Start Server</button>
-        <span class="hint" id="server-url"></span>
-      </div>
       <label>Port
         <input type="number" id="port" min="1024" max="65535" />
       </label>
       <label>API Key
         <div class="row">
-          <input type="text" id="api-key" readonly />
+          <input type="text" id="api-key" spellcheck="false" />
           <button id="btn-copy-key" title="Salin">Salin</button>
           <button id="btn-regen-key" title="Generate ulang">↻</button>
         </div>
@@ -34,6 +30,10 @@
       <label>CORS Origins <span class="hint">("*" = semua, atau daftar origin dipisah koma)</span>
         <input type="text" id="cors" placeholder="*" />
       </label>
+      <div class="row toggle-row">
+        <button id="btn-toggle" class="primary">Start Server</button>
+        <span class="hint" id="server-url"></span>
+      </div>
     </section>
 
     <section>
