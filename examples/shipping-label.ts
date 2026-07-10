@@ -12,7 +12,7 @@ import {
   NetworkTransport,
   CupsTransport,
   type Transport,
-} from "../src/index";
+} from "@node-tsp/core";
 
 const { values } = parseArgs({
   args: Bun.argv.slice(2),

@@ -9,13 +9,13 @@
  *   bun run src/cli.ts --host 192.168.1.50 --text "Test" --dry-run
  */
 import { parseArgs } from "util";
-import { TSPL } from "./tspl";
 import {
+  TSPL,
   CupsTransport,
   FileTransport,
   NetworkTransport,
   type Transport,
-} from "./transport";
+} from "@node-tsp/core";
 
 const HELP = `tspl-print — print label ke printer TSPL
 

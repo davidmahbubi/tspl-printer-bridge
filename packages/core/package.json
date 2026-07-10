@@ -1,0 +1,9 @@
+{
+  "name": "@node-tsp/core",
+  "version": "0.1.0",
+  "description": "TSPL command builder and printer transports",
+  "type": "module",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts"
+}

@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "description": "TSPL label printing app for Bun",
   "type": "module",
-  "module": "src/index.ts",
+  "workspaces": ["packages/*", "apps/*"],
   "bin": {
     "tspl-print": "src/cli.ts"
+  },
+  "dependencies": {
+    "@node-tsp/core": "workspace:*"
   },
   "scripts": {
     "cli": "bun run src/cli.ts",
