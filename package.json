@@ -1,0 +1,17 @@
+{
+  "name": "node-tsp",
+  "version": "0.1.0",
+  "description": "TSPL label printing app for Bun",
+  "type": "module",
+  "module": "src/index.ts",
+  "bin": {
+    "tspl-print": "src/cli.ts"
+  },
+  "scripts": {
+    "cli": "bun run src/cli.ts",
+    "example": "bun run examples/shipping-label.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
