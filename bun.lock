@@ -14,9 +14,18 @@
       "name": "@node-tsp/core",
       "version": "0.1.0",
     },
+    "packages/server": {
+      "name": "@node-tsp/server",
+      "version": "0.1.0",
+      "dependencies": {
+        "@node-tsp/core": "workspace:*",
+      },
+    },
   },
   "packages": {
     "@node-tsp/core": ["@node-tsp/core@workspace:packages/core"],
+
+    "@node-tsp/server": ["@node-tsp/server@workspace:packages/server"],
 
     "@types/bun": ["@types/bun@1.3.14", "", { "dependencies": { "bun-types": "1.3.14" } }, "sha512-h1hFqFVcvAvD9j9K7ZW7vd82aSA+rTdznZa+5bwvCwqSB1jmmfLcbIWhOLx1/+boy/xmjgCs/OMUL8hRJSmnPw=="],
 
