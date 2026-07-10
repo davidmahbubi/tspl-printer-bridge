@@ -4,6 +4,7 @@ import {
   ipcMain,
   Menu,
   nativeImage,
+  screen,
   Tray,
 } from "electron";
 import { join } from "node:path";
@@ -119,6 +120,16 @@ function createWindow(): void {
     },
   });
   win.loadFile(join(distDir(), "renderer/index.html"));
+  // Fit the window height to the rendered content on first load
+  win.webContents.once("did-finish-load", async () => {
+    if (!win) return;
+    const contentHeight: number = await win.webContents.executeJavaScript(
+      "document.body.scrollHeight"
+    );
+    const maxHeight = screen.getPrimaryDisplay().workArea.height;
+    win.setContentSize(520, Math.min(Math.ceil(contentHeight), maxHeight));
+    win.center();
+  });
   win.on("close", (event) => {
     if (!quitting) {
       event.preventDefault();

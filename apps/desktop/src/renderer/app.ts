@@ -61,7 +61,8 @@ function renderStatus(status: ServerStatus): void {
 
 function appendLog(entry: LogEntry): void {
   const line = document.createElement("span");
-  line.textContent = `${entry.time.slice(11, 19)} ${entry.message}\n`;
+  const time = new Date(entry.time).toLocaleTimeString([], { hour12: false });
+  line.textContent = `${time} ${entry.message}\n`;
   if (entry.level === "error") line.className = "err";
   logPre.appendChild(line);
   while (logPre.childNodes.length > 100) logPre.removeChild(logPre.firstChild!);
