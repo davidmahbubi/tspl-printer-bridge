@@ -1,12 +1,59 @@
 # node-tsp
 
-Aplikasi Bun untuk mencetak label ke printer thermal berbahasa **TSPL/TSPL2** (TSC, Xprinter, HPRT, dan yang kompatibel).
+Toolkit untuk mencetak label ke printer thermal berbahasa **TSPL/TSPL2** (TSC, Xprinter, HPRT, dan yang kompatibel):
+
+- `packages/core` — TSPL command builder + transport (network TCP 9100, CUPS USB, device path)
+- `packages/server` — **TSPL Print Bridge**: HTTP server localhost supaya web app bisa print via `fetch()`
+- `apps/desktop` — GUI Electron untuk bridge (pilih printer, port, API key, autostart, tray)
+- `src/cli.ts` — CLI print label
+- `clients/tspl-bridge.ts` — helper client untuk dipakai di web app
 
 ## Instalasi
 
 ```bash
 bun install
 ```
+
+## TSPL Print Bridge (untuk web app)
+
+Jalankan app desktop, pilih printer default, salin API key, lalu dari web app:
+
+```js
+const res = await fetch("http://127.0.0.1:9123/print", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-Api-Key": "<key>" },
+  body: JSON.stringify({
+    label: { width: 78, height: 100, gap: 3, tear: true },
+    elements: [
+      { type: "text", x: 24, y: 28, content: "Halo", scale: 2 },
+      { type: "barcode", x: 24, y: 100, content: "8991234567890", height: 100 },
+      { type: "qrcode", x: 24, y: 260, content: "https://example.com", cellWidth: 5 },
+    ],
+  }),
+});
+```
+
+Atau pakai helper `clients/tspl-bridge.ts` (salin ke project web app). Endpoint:
+
+| Endpoint | Auth | Fungsi |
+|---|---|---|
+| `GET /health` | – | Deteksi bridge jalan |
+| `GET /printers` | ✓ | Daftar printer + default |
+| `POST /print` | ✓ | Print declarative (`label`+`elements`) atau raw (`{raw: "SIZE..."}`) |
+
+Elemen yang didukung: `text`, `block` (teks multi-baris), `barcode`, `qrcode`, `box`, `bar`. Koordinat satuan dot (203 dpi = 8 dot/mm). Demo browser: buka `examples/web-demo.html`.
+
+Menjalankan dari source:
+
+```bash
+cd apps/desktop && bun run start      # dev
+cd apps/desktop && bun run dist      # build .dmg (macOS)
+cd apps/desktop && bun run dist:win  # build installer Windows (NSIS)
+```
+
+Server bridge juga bisa jalan tanpa GUI: `PRINTER=CXPrinter_DT_369 API_KEY=rahasia bun run packages/server/src/standalone.ts`
+
+> **Catatan Windows**: printing via nama printer memakai perintah `lp` (CUPS) yang hanya ada di macOS/Linux. Di Windows, untuk saat ini gunakan printer jaringan (field `host` di payload, TCP 9100).
 
 ## Pemakaian CLI
 

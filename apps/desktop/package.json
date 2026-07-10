@@ -3,18 +3,37 @@
   "version": "0.1.0",
   "description": "TSPL Print Bridge — local print server untuk printer label TSPL",
   "private": true,
+  "author": "David Mahbubi",
   "main": "dist/main/main.cjs",
   "scripts": {
     "build": "bun run scripts/build.ts",
     "start": "bun run build && electron .",
-    "dist": "bun run build && electron-builder"
-  },
-  "dependencies": {
-    "@node-tsp/core": "workspace:*",
-    "@node-tsp/server": "workspace:*"
+    "dist": "bun run build && electron-builder --mac",
+    "dist:win": "bun run build && electron-builder --win"
   },
   "devDependencies": {
+    "@node-tsp/core": "workspace:*",
+    "@node-tsp/server": "workspace:*",
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "id.davidmahbubi.tspl-bridge",
+    "productName": "TSPL Print Bridge",
+    "files": ["dist/**/*", "package.json"],
+    "directories": { "output": "release" },
+    "electronVersion": "33.4.11",
+    "npmRebuild": false,
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["arm64"] }],
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
