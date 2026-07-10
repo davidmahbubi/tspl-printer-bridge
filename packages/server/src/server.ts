@@ -1,7 +1,3 @@
-/**
- * HTTP bridge server: menerima request print dari web app (localhost)
- * dan meneruskannya ke printer TSPL.
- */
 import { createServer, type Server, type IncomingMessage, type ServerResponse } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { execFile } from "node:child_process";
@@ -18,17 +14,12 @@ import {
 } from "./schema";
 
 export interface BridgeConfig {
-  /** Port HTTP (default 9123) */
   port?: number;
-  /** API key wajib untuk /print dan /printers */
   apiKey: string;
-  /** Nama printer CUPS default */
   printer?: string;
-  /** Origin yang diizinkan CORS: "*" atau daftar dipisah koma (default "*") */
   corsOrigins?: string;
-  /** Alamat bind (default 127.0.0.1 — jangan diubah kecuali paham risikonya) */
+  /** Default 127.0.0.1 — jangan bind ke alamat lain kecuali paham risikonya */
   host?: string;
-  /** Override pembuatan transport (untuk testing) */
   transportFactory?: (target: PrintTarget) => Transport;
 }
 
@@ -61,7 +52,6 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(ba, bb);
 }
 
-/** Daftar printer OS via `lpstat -p` (macOS/Linux). */
 export function listPrinters(): Promise<string[]> {
   return new Promise((resolve) => {
     execFile("lpstat", ["-p"], (err, stdout) => {

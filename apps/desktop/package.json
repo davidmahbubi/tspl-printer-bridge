@@ -7,7 +7,7 @@
   "main": "dist/main/main.cjs",
   "scripts": {
     "build": "bun run scripts/build.ts",
-    "start": "bun run build && electron .",
+    "start": "bun run build && bun run scripts/fix-dev-appname.ts && electron .",
     "dist": "bun run build && electron-builder --mac",
     "dist:win": "bun run build && electron-builder --win"
   },

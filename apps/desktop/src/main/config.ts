@@ -37,16 +37,14 @@ export function loadConfig(): AppConfig {
   let stored: Partial<AppConfig> = {};
   try {
     stored = JSON.parse(readFileSync(configPath(), "utf8"));
-  } catch {
-    // belum ada config → pakai default
-  }
+  } catch {}
   const cfg: AppConfig = {
     ...DEFAULTS,
     apiKey: generateApiKey(),
     ...stored,
     testLabel: { ...DEFAULTS.testLabel, ...stored.testLabel },
   };
-  if (!stored.apiKey) saveConfig(cfg); // persist key yang baru digenerate
+  if (!stored.apiKey) saveConfig(cfg);
   return cfg;
 }
 

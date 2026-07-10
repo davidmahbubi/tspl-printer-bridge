@@ -1,12 +1,17 @@
 # node-tsp
 
-Toolkit untuk mencetak label ke printer thermal berbahasa **TSPL/TSPL2** (TSC, Xprinter, HPRT, dan yang kompatibel):
+Toolkit untuk mencetak label ke printer thermal berbahasa **TSPL/TSPL2** (TSC, Xprinter, HPRT, CXPrinter, dan yang kompatibel).
 
-- `packages/core` — TSPL command builder + transport (network TCP 9100, CUPS USB, device path)
-- `packages/server` — **TSPL Print Bridge**: HTTP server localhost supaya web app bisa print via `fetch()`
-- `apps/desktop` — GUI Electron untuk bridge (pilih printer, port, API key, autostart, tray)
-- `src/cli.ts` — CLI print label
-- `clients/tspl-bridge.ts` — helper client untuk dipakai di web app
+## Struktur
+
+| Path | Isi |
+|---|---|
+| `packages/core` | TSPL command builder + transport (TCP 9100, CUPS, device path) |
+| `packages/server` | HTTP bridge server untuk print dari web app |
+| `apps/desktop` | **TSPL Print Bridge** — aplikasi desktop (Electron) untuk bridge |
+| `src/cli.ts` | CLI print label |
+| `clients/tspl-bridge.ts` | Helper client untuk web app |
+| `examples/` | Contoh label pengiriman + demo web |
 
 ## Instalasi
 
@@ -14,9 +19,9 @@ Toolkit untuk mencetak label ke printer thermal berbahasa **TSPL/TSPL2** (TSC, X
 bun install
 ```
 
-## TSPL Print Bridge (untuk web app)
+## TSPL Print Bridge (print dari web app)
 
-Jalankan app desktop, pilih printer default, salin API key, lalu dari web app:
+Jalankan aplikasi desktop, pilih printer default, salin API key, lalu dari web app:
 
 ```js
 const res = await fetch("http://127.0.0.1:9123/print", {
@@ -33,64 +38,77 @@ const res = await fetch("http://127.0.0.1:9123/print", {
 });
 ```
 
-Atau pakai helper `clients/tspl-bridge.ts` (salin ke project web app). Endpoint:
+Atau salin `clients/tspl-bridge.ts` ke project web app dan pakai class `TsplBridge`.
+
+### Endpoint
 
 | Endpoint | Auth | Fungsi |
 |---|---|---|
-| `GET /health` | – | Deteksi bridge jalan |
-| `GET /printers` | ✓ | Daftar printer + default |
-| `POST /print` | ✓ | Print declarative (`label`+`elements`) atau raw (`{raw: "SIZE..."}`) |
+| `GET /health` | – | Cek bridge jalan (untuk deteksi dari web app) |
+| `GET /printers` | ✓ | Daftar printer + printer default |
+| `POST /print` | ✓ | Print declarative (`label` + `elements`) atau raw (`{ "raw": "SIZE..." }`) |
 
-Elemen yang didukung: `text`, `block` (teks multi-baris), `barcode`, `qrcode`, `box`, `bar`. Koordinat satuan dot (203 dpi = 8 dot/mm). Demo browser: buka `examples/web-demo.html`.
+Auth memakai header `X-Api-Key`. Elemen yang didukung: `text`, `block` (teks multi-baris),
+`barcode`, `qrcode`, `box`, `bar`. Koordinat memakai satuan **dot** (203 dpi = 8 dot/mm,
+300 dpi = 12 dot/mm). Payload bisa menyertakan `printer` (nama printer CUPS) atau
+`host`/`port` (printer jaringan) untuk override printer default.
 
-Menjalankan dari source:
+Coba dari browser: buka `examples/web-demo.html`, isi API key, klik Print.
+
+### Menjalankan aplikasi desktop
 
 ```bash
-cd apps/desktop && bun run start      # dev
-cd apps/desktop && bun run dist      # build .dmg (macOS)
-cd apps/desktop && bun run dist:win  # build installer Windows (NSIS)
+cd apps/desktop
+bun run start     # development
+bun run dist      # build .dmg (macOS)
+bun run dist:win  # build installer Windows (NSIS)
 ```
 
-Server bridge juga bisa jalan tanpa GUI: `PRINTER=CXPrinter_DT_369 API_KEY=rahasia bun run packages/server/src/standalone.ts`
-
-> **Catatan Windows**: printing via nama printer memakai perintah `lp` (CUPS) yang hanya ada di macOS/Linux. Di Windows, untuk saat ini gunakan printer jaringan (field `host` di payload, TCP 9100).
-
-## Pemakaian CLI
+Server bridge juga bisa jalan tanpa GUI:
 
 ```bash
+PRINTER=CXPrinter_DT_369 API_KEY=rahasia bun run packages/server/src/standalone.ts
+```
+
+> **Catatan Windows**: printing via nama printer memakai `lp` (CUPS) yang hanya ada di
+> macOS/Linux. Di Windows gunakan printer jaringan (field `host` di payload, TCP 9100).
+
+## CLI
+
+```bash
+# Printer USB via CUPS (cek nama printer: lpstat -p)
+bun run src/cli.ts --printer CXPrinter_DT_369 --text "Produk A" --barcode 8991234567890
+
 # Printer jaringan (TCP port 9100)
 bun run src/cli.ts --host 192.168.1.50 --text "Halo Dunia"
 
-# Printer USB via CUPS (cek nama printer: lpstat -p)
-bun run src/cli.ts --printer TSC_TE244 --text "Produk A" --barcode 8991234567890
-
 # Kirim file TSPL mentah
-bun run src/cli.ts --host 192.168.1.50 --file label.tspl
+bun run src/cli.ts --printer CXPrinter_DT_369 --file label.tspl
 
 # Lihat perintah TSPL tanpa mencetak
 bun run src/cli.ts --text "Test" --qrcode "https://example.com" --dry-run
 
-# Opsi ukuran label
-bun run src/cli.ts --host 192.168.1.50 --width 58 --height 40 --gap 2 \
+# Ukuran label + salinan
+bun run src/cli.ts --printer CXPrinter_DT_369 --width 78 --height 100 --gap 3 \
   --text "Nama Produk" --barcode 123456789 --copies 3
 
-# Berhenti di pembatas label setelah cetak (tear-off, printer tanpa cutter)
-bun run src/cli.ts --printer DT369 --text "Produk A" --tear
+# Berhenti di pembatas label setelah cetak (tear-off)
+bun run src/cli.ts --printer CXPrinter_DT_369 --text "Produk A" --tear
 
-# Potong otomatis (printer dengan pisau cutter): tiap 1 label / sekali di akhir
-bun run src/cli.ts --printer DT369 --text "Produk A" --cut 1
-bun run src/cli.ts --printer DT369 --text "Produk A" --copies 5 --cut batch
+# Printer dengan pisau cutter: potong tiap 1 label / sekali di akhir job
+bun run src/cli.ts --printer CXPrinter_DT_369 --text "Produk A" --cut 1
+bun run src/cli.ts --printer CXPrinter_DT_369 --text "Produk A" --copies 5 --cut batch
 
 # Kalibrasi posisi berhenti/sobek (mm, bisa negatif)
-bun run src/cli.ts --printer DT369 --text "Produk A" --tear --offset 2
+bun run src/cli.ts --printer CXPrinter_DT_369 --text "Produk A" --tear --offset 2
 ```
 
-Jalankan `bun run src/cli.ts --help` untuk daftar opsi lengkap.
+`bun run src/cli.ts --help` untuk daftar opsi lengkap.
 
-## Pemakaian sebagai Library
+## Pemakaian sebagai library
 
 ```ts
-import { TSPL, NetworkTransport, CupsTransport } from "./src/index";
+import { TSPL, NetworkTransport, CupsTransport } from "@node-tsp/core";
 
 const label = new TSPL()
   .size(40, 30)        // mm
@@ -100,34 +118,26 @@ const label = new TSPL()
   .text("Kopi Arabika 250g", { x: 16, y: 16 })
   .barcode("8991234567890", { x: 16, y: 60, type: "EAN13", height: 80 })
   .qrcode("https://example.com/p/123", { x: 220, y: 60, cellWidth: 4 })
-  .setTear(true)       // berhenti di pembatas label (atau .setCutter(1) untuk cutter)
+  .setTear(true)
   .print(1, 2);        // 1 set, 2 salinan
 
-// Kirim via jaringan
-await new NetworkTransport("192.168.1.50").send(label.toBuffer());
-
-// atau via USB/CUPS (macOS/Linux)
-await new CupsTransport("TSC_TE244").send(label.toBuffer());
+await new CupsTransport("CXPrinter_DT_369").send(label.toBuffer()); // USB via CUPS
+await new NetworkTransport("192.168.1.50").send(label.toBuffer()); // jaringan
 ```
 
-### Contoh label pengiriman
+Contoh label pengiriman 78×100 mm:
 
 ```bash
-bun run examples/shipping-label.ts               # dry run
-bun run examples/shipping-label.ts 192.168.1.50  # cetak
+bun run examples/shipping-label.ts                              # dry run
+bun run examples/shipping-label.ts --printer CXPrinter_DT_369   # cetak via CUPS
+bun run examples/shipping-label.ts --host 192.168.1.50          # cetak via jaringan
 ```
 
-## Catatan koneksi USB (macOS)
+## Catatan printer USB di macOS
 
-Tambahkan printer ke CUPS dengan driver **raw** agar data TSPL diteruskan apa adanya:
-
-```bash
-lpadmin -p TSPL_PRINTER -E -v usb://TSC/TE244 -m raw
-bun run src/cli.ts --printer TSPL_PRINTER --text "Test"
-```
-
-Cari URI perangkat USB dengan `lpinfo -v`.
-
-## Catatan satuan
-
-Koordinat TSPL memakai satuan **dot**: printer 203 dpi = 8 dot/mm, 300 dpi = 12 dot/mm. Label 40 mm lebar pada 203 dpi = 320 dot.
+- Data dikirim lewat antrian CUPS dengan `lp -o raw`, jadi driver antriannya tidak penting —
+  antrian bawaan yang dibuat macOS saat printer dicolok sudah cukup. Cek namanya dengan `lpstat -p`.
+- `lpadmin -m raw` **tidak didukung lagi** di macOS versi baru ("Raw queues are no longer
+  supported") — tidak perlu dan jangan dipakai.
+- Kalau hasil print berupa teks perintah TSPL mentah (bukan label), printer sedang berada di
+  mode ESC/POS — pindahkan ke mode TSPL/label lewat tombol atau utilitas vendor printer.

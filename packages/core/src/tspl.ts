@@ -1,12 +1,4 @@
-/**
- * TSPL/TSPL2 command builder.
- *
- * Membangun perintah TSPL sebagai buffer teks yang siap dikirim mentah (raw)
- * ke printer label (TSC, Xprinter, HPRT, dsb).
- *
- * Satuan koordinat TSPL adalah dot. Umumnya printer 203 dpi = 8 dot/mm,
- * 300 dpi = 12 dot/mm.
- */
+// TSPL/TSPL2 command builder. Satuan koordinat: dot (203 dpi = 8 dot/mm).
 
 export type Rotation = 0 | 90 | 180 | 270;
 
@@ -63,7 +55,6 @@ export interface QrCodeOptions {
   rotation?: Rotation;
 }
 
-/** Escape karakter khusus TSPL di dalam string literal. */
 function esc(content: string): string {
   // Tanda kutip ganda di TSPL ditulis sebagai \["]
   return content.replace(/\\/g, "\\\\").replace(/"/g, '\\["]');

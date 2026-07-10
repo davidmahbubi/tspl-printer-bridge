@@ -1,13 +1,5 @@
-/**
- * Transport untuk mengirim data mentah (raw TSPL) ke printer.
- *
- * - NetworkTransport : printer jaringan via TCP port 9100 (JetDirect/RAW)
- * - CupsTransport    : printer USB/lokal via CUPS (`lp -o raw`) — macOS/Linux
- * - FileTransport    : tulis ke file/device path (mis. /dev/usb/lp0 di Linux)
- *
- * Hanya memakai API Node (node:net, node:child_process, node:fs) supaya
- * bisa jalan di Bun maupun Electron main process.
- */
+// Transport pengiriman raw TSPL ke printer. Sengaja hanya memakai API Node
+// (bukan Bun.*) supaya bisa jalan di Electron main process.
 import { Socket } from "node:net";
 import { spawn } from "node:child_process";
 import { writeFile } from "node:fs/promises";

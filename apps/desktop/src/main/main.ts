@@ -22,11 +22,8 @@ import {
   type AppConfig,
 } from "./config";
 
-/**
- * Path aset di-resolve dari app path (bukan __dirname — bundler Bun
- * mengganti __dirname secara statis ke direktori source).
- * Dev: apps/desktop/dist, packaged: app.asar/dist.
- */
+// Path aset di-resolve dari app path, bukan __dirname — bundler Bun
+// mengganti __dirname secara statis ke direktori source.
 const distDir = () => join(app.getAppPath(), "dist");
 const iconsDir = () => join(distDir(), "assets/icons");
 
@@ -78,7 +75,6 @@ async function stopServer(): Promise<void> {
   broadcastStatus();
 }
 
-/** Terapkan config baru: restart server bila sedang jalan. */
 async function applyConfig(next: AppConfig): Promise<void> {
   const wasRunning = server?.isRunning() ?? false;
   config = next;
@@ -122,7 +118,7 @@ function createWindow(): void {
   win.on("close", (event) => {
     if (!quitting) {
       event.preventDefault();
-      win?.hide(); // tetap jalan di tray
+      win?.hide();
     }
   });
   win.on("closed", () => (win = null));
@@ -172,9 +168,7 @@ function createTray(): void {
         scaleFactor: 2,
         buffer: readFileSync(join(iconsDir(), "macos/32x32.png")),
       });
-    } catch {
-      // tanpa varian retina juga tidak apa-apa
-    }
+    } catch {}
   }
   tray = new Tray(icon);
   tray.on("double-click", createWindow);
@@ -252,9 +246,7 @@ if (!gotLock) {
     if (process.platform === "darwin") {
       try {
         app.dock?.setIcon(join(iconsDir(), "macos/512x512.png"));
-      } catch {
-        // packaged app sudah pakai icns dari installer
-      }
+      } catch {}
     }
     registerIpc();
     createTray();

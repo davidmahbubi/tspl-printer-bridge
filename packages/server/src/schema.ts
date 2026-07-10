@@ -1,7 +1,3 @@
-/**
- * Skema payload /print + validasi manual ringan (tanpa dependensi)
- * dan penyusunan TSPL dari payload declarative.
- */
 import { TSPL, type BarcodeType, type Rotation } from "@node-tsp/core";
 
 export interface LabelConfig {
@@ -188,7 +184,6 @@ export function validatePrintPayload(body: any): PrintPayload {
   return body as DeclarativePayload;
 }
 
-/** Susun TSPL dari payload declarative. */
 export function buildTspl(payload: DeclarativePayload): string {
   const { label, elements } = payload;
   const tspl = new TSPL()
