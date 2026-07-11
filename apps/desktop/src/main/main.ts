@@ -15,8 +15,8 @@ import {
   listPrinters,
   type BridgeServer,
   type LogEntry,
-} from "@node-tsp/server";
-import { TSPL, CupsTransport } from "@node-tsp/core";
+} from "@davidmahbubi/tspl-bridge-server";
+import { TSPL, CupsTransport } from "@davidmahbubi/tspl-bridge-core";
 import {
   generateApiKey,
   loadConfig,

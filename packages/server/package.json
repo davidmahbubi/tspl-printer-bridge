@@ -1,5 +1,5 @@
 {
-  "name": "@node-tsp/server",
+  "name": "@davidmahbubi/tspl-bridge-server",
   "version": "0.1.0",
   "description": "Local HTTP bridge server for TSPL label printing",
   "type": "module",
@@ -7,6 +7,6 @@
   "module": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "@node-tsp/core": "workspace:*"
+    "@davidmahbubi/tspl-bridge-core": "workspace:*"
   }
 }

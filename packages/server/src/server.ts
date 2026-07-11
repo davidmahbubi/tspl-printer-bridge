@@ -5,7 +5,7 @@ import {
   CupsTransport,
   NetworkTransport,
   type Transport,
-} from "@node-tsp/core";
+} from "@davidmahbubi/tspl-bridge-core";
 import {
   buildTspl,
   validatePrintPayload,
@@ -191,10 +191,14 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
         throw err;
       }
 
-      const tspl = "raw" in payload ? payload.raw : buildTspl(payload);
+      let data: Uint8Array;
       try {
+        data =
+          "raw" in payload
+            ? new TextEncoder().encode(payload.raw)
+            : buildTspl(payload).toBuffer();
         const transport = makeTransport(payload);
-        await transport.send(new TextEncoder().encode(tspl));
+        await transport.send(data);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         const status = err instanceof ValidationError ? 400 : 502;
@@ -206,7 +210,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
       const target = payload.host
         ? `${payload.host}:${payload.port ?? 9100}`
         : payload.printer ?? config.printer;
-      log("info", `POST /print → OK (${target}, ${tspl.length} bytes)`);
+      log("info", `POST /print → OK (${target}, ${data.length} bytes)`);
       json(res, 200, { ok: true });
       return;
     }

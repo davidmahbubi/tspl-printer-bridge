@@ -14,8 +14,9 @@ import {
   CupsTransport,
   FileTransport,
   NetworkTransport,
+  monoFromPNG,
   type Transport,
-} from "@node-tsp/core";
+} from "@davidmahbubi/tspl-bridge-core";
 
 const HELP = `tspl-print — print labels to a TSPL printer
 
@@ -32,6 +33,8 @@ Content:
   --text <text>        Line of text (can be repeated)
   --barcode <data>     Code 128 barcode
   --qrcode <data>      QR code
+  --image <path>       PNG image/logo, printed above the text (1-bit, threshold)
+  --image-width <mm>   Resize the image to this width in mm (8 dots/mm)
   --file <path>        Send a raw .tspl file (ignores other content options)
 
 Label options:
@@ -60,6 +63,8 @@ const { values } = parseArgs({
     text: { type: "string", multiple: true },
     barcode: { type: "string" },
     qrcode: { type: "string" },
+    image: { type: "string" },
+    "image-width": { type: "string" },
     file: { type: "string" },
     width: { type: "string", default: "40" },
     height: { type: "string", default: "30" },
@@ -88,15 +93,22 @@ function buildTransport(): Transport | null {
   return null;
 }
 
-async function buildPayload(): Promise<Uint8Array> {
+interface Payload {
+  data: Uint8Array;
+  /** Readable form for --dry-run (bitmap payloads shown as a placeholder). */
+  preview: string;
+}
+
+async function buildPayload(): Promise<Payload> {
   if (values.file) {
-    return new Uint8Array(await Bun.file(values.file).arrayBuffer());
+    const data = new Uint8Array(await Bun.file(values.file).arrayBuffer());
+    return { data, preview: new TextDecoder().decode(data) };
   }
 
   const texts = values.text ?? [];
-  if (texts.length === 0 && !values.barcode && !values.qrcode) {
+  if (texts.length === 0 && !values.barcode && !values.qrcode && !values.image) {
     console.error(
-      "No content. Use --text / --barcode / --qrcode / --file. See --help."
+      "No content. Use --text / --barcode / --qrcode / --image / --file. See --help."
     );
     process.exit(1);
   }
@@ -115,6 +127,15 @@ async function buildPayload(): Promise<Uint8Array> {
   }
 
   let y = 16;
+  if (values.image) {
+    const png = new Uint8Array(await Bun.file(values.image).arrayBuffer());
+    const widthDots = values["image-width"]
+      ? Math.round(Number(values["image-width"]) * 8)
+      : undefined;
+    const logo = monoFromPNG(png, { widthDots });
+    label.bitmap(logo, { x: 16, y });
+    y += logo.height + 8;
+  }
   for (const t of texts) {
     label.text(t, { x: 16, y });
     y += 32;
@@ -128,13 +149,13 @@ async function buildPayload(): Promise<Uint8Array> {
   }
 
   label.print(1, Number(values.copies));
-  return label.toBuffer();
+  return { data: label.toBuffer(), preview: label.toString() };
 }
 
 const payload = await buildPayload();
 
 if (values["dry-run"]) {
-  console.log(new TextDecoder().decode(payload));
+  console.log(payload.preview);
   process.exit(0);
 }
 
@@ -146,5 +167,5 @@ if (!transport) {
   process.exit(1);
 }
 
-await transport.send(payload);
+await transport.send(payload.data);
 console.log("✓ Label sent to printer.");

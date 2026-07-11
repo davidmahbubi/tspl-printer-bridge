@@ -1,4 +1,9 @@
-import { TSPL, type BarcodeType, type Rotation } from "@node-tsp/core";
+import {
+  TSPL,
+  monoFromPNG,
+  type BarcodeType,
+  type Rotation,
+} from "@davidmahbubi/tspl-bridge-core";
 
 export interface LabelConfig {
   /** Label width in mm */
@@ -69,7 +74,20 @@ export type Element =
       rotation?: Rotation;
     }
   | { type: "box"; x: number; y: number; xEnd: number; yEnd: number; thickness?: number }
-  | { type: "bar"; x: number; y: number; width: number; height: number };
+  | { type: "bar"; x: number; y: number; width: number; height: number }
+  | {
+      type: "image";
+      x: number;
+      y: number;
+      /** PNG file content, base64-encoded (data URL prefix allowed) */
+      data: string;
+      /** Resize to this width in dots (aspect ratio preserved) */
+      width?: number;
+      /** Luminance 0-255 below which a pixel prints black (default 128) */
+      threshold?: number;
+      /** 0 = overwrite (default), 1 = OR, 2 = XOR */
+      mode?: 0 | 1 | 2;
+    };
 
 export interface DeclarativePayload {
   label: LabelConfig;
@@ -133,9 +151,28 @@ function validateElement(el: any, i: number): void {
       needXY();
       need(isNum(el.width) && isNum(el.height), `${at} requires width and height`);
       break;
+    case "image":
+      needXY();
+      need(
+        isStr(el.data) && el.data.length > 0,
+        `${at}.data must be a base64-encoded PNG string`
+      );
+      if (el.width !== undefined)
+        need(isNum(el.width) && el.width >= 1, `${at}.width must be >= 1 (dots)`);
+      if (el.threshold !== undefined)
+        need(
+          isNum(el.threshold) && el.threshold >= 0 && el.threshold <= 255,
+          `${at}.threshold must be 0-255`
+        );
+      if (el.mode !== undefined)
+        need(
+          el.mode === 0 || el.mode === 1 || el.mode === 2,
+          `${at}.mode must be 0 (overwrite), 1 (OR) or 2 (XOR)`
+        );
+      break;
     default:
       throw new ValidationError(
-        `${at}.type "${el.type}" is not recognized (text|block|barcode|qrcode|box|bar)`
+        `${at}.type "${el.type}" is not recognized (text|block|barcode|qrcode|box|bar|image)`
       );
   }
 }
@@ -184,7 +221,17 @@ export function validatePrintPayload(body: any): PrintPayload {
   return body as DeclarativePayload;
 }
 
-export function buildTspl(payload: DeclarativePayload): string {
+function decodeBase64(data: string, at: string): Uint8Array {
+  // Allow a data URL prefix ("data:image/png;base64,....")
+  const b64 = data.startsWith("data:") ? (data.split(",")[1] ?? "") : data;
+  try {
+    return new Uint8Array(Buffer.from(b64, "base64"));
+  } catch {
+    throw new ValidationError(`${at}.data is not valid base64`);
+  }
+}
+
+export function buildTspl(payload: DeclarativePayload): TSPL {
   const { label, elements } = payload;
   const tspl = new TSPL()
     .size(label.width, label.height)
@@ -197,7 +244,7 @@ export function buildTspl(payload: DeclarativePayload): string {
   if (label.tear) tspl.setTear(true);
   if (label.cut !== undefined) tspl.setCutter(label.cut);
 
-  for (const el of elements) {
+  for (const [i, el] of elements.entries()) {
     switch (el.type) {
       case "text":
         tspl.text(el.content, {
@@ -249,9 +296,26 @@ export function buildTspl(payload: DeclarativePayload): string {
       case "bar":
         tspl.bar(el.x, el.y, el.width, el.height);
         break;
+      case "image": {
+        const at = `elements[${i}]`;
+        const png = decodeBase64(el.data, at);
+        let bitmap;
+        try {
+          bitmap = monoFromPNG(png, {
+            widthDots: el.width,
+            threshold: el.threshold,
+          });
+        } catch (err) {
+          throw new ValidationError(
+            `${at}: ${err instanceof Error ? err.message : String(err)}`
+          );
+        }
+        tspl.bitmap(bitmap, { x: el.x, y: el.y, mode: el.mode });
+        break;
+      }
     }
   }
 
   tspl.print(1, label.copies ?? 1);
-  return tspl.toString();
+  return tspl;
 }

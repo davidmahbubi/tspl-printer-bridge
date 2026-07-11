@@ -12,8 +12,8 @@
     "dist:win": "bun run build && electron-builder --win"
   },
   "devDependencies": {
-    "@node-tsp/core": "workspace:*",
-    "@node-tsp/server": "workspace:*",
+    "@davidmahbubi/tspl-bridge-core": "workspace:*",
+    "@davidmahbubi/tspl-bridge-server": "workspace:*",
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0"
   },

@@ -10,7 +10,7 @@ Toolkit for printing labels on **TSPL/TSPL2** thermal printers (TSC, Xprinter, H
 | `packages/server` | HTTP bridge server for printing from web apps |
 | `apps/desktop` | **TSPL Print Bridge** — desktop app (Electron) for the bridge |
 | `src/cli.ts` | Label printing CLI |
-| `clients/tspl-bridge.ts` | Client helper for web apps |
+| `packages/client` | **@davidmahbubi/tspl-bridge-sdk** — browser SDK for web apps (zero dependencies) |
 | `examples/` | Shipping label example + web demo |
 
 ## Installation
@@ -38,7 +38,37 @@ const res = await fetch("http://127.0.0.1:9123/print", {
 });
 ```
 
-Or copy `clients/tspl-bridge.ts` into your web app and use the `TsplBridge` class.
+Or use the **@davidmahbubi/tspl-bridge-sdk** SDK (`packages/client`, zero dependencies):
+
+```ts
+import { TsplBridge } from "@davidmahbubi/tspl-bridge-sdk";
+
+const bridge = new TsplBridge({ apiKey: "<key>" });
+if (await bridge.isAvailable()) {
+  await bridge.print({
+    label: { width: 78, height: 100, gap: 3, tear: true },
+    elements: [
+      { type: "image", x: 24, y: 16, data: pngBase64, width: 160 },
+      { type: "text", x: 24, y: 120, content: "Hello", scale: 2 },
+    ],
+  });
+}
+```
+
+Distributing the SDK to clients: publish `packages/client` to npm (`cd packages/client
+&& npm publish`), or mirror it to its own GitHub repo so it can be installed with a
+plain `github:` dependency (`dist/` is committed, so no build step is needed):
+
+```bash
+# one-time: create an empty repo, e.g. <you>/tspl-bridge-sdk, then from this repo:
+git subtree push --prefix packages/client git@github.com:<you>/tspl-bridge-sdk.git main
+# clients then install with:
+#   "@davidmahbubi/tspl-bridge-sdk": "github:<you>/tspl-bridge-sdk"
+```
+
+> Don't point clients at this monorepo itself (`github:<you>/node-tsp`) — git
+> dependencies always fetch the whole repo, and the root package's `workspace:*`
+> dependencies don't resolve outside the workspace.
 
 ### Endpoints
 
@@ -49,7 +79,9 @@ Or copy `clients/tspl-bridge.ts` into your web app and use the `TsplBridge` clas
 | `POST /print` | ✓ | Declarative print (`label` + `elements`) or raw (`{ "raw": "SIZE..." }`) |
 
 Auth uses the `X-Api-Key` header. Supported elements: `text`, `block` (multi-line text),
-`barcode`, `qrcode`, `box`, `bar`. Coordinates are in **dots** (203 dpi = 8 dots/mm,
+`barcode`, `qrcode`, `box`, `bar`, `image` (PNG logo — `data` is the PNG as base64 or a
+data URL; optional `width` in dots resizes it, `threshold` 0-255 sets the black/white
+cutoff). Coordinates are in **dots** (203 dpi = 8 dots/mm,
 300 dpi = 12 dots/mm). The payload may include `printer` (CUPS printer name) or
 `host`/`port` (network printer) to override the default printer.
 
@@ -92,6 +124,9 @@ bun run src/cli.ts --text "Test" --qrcode "https://example.com" --dry-run
 bun run src/cli.ts --printer CXPrinter_DT_369 --width 78 --height 100 --gap 3 \
   --text "Product Name" --barcode 123456789 --copies 3
 
+# Print a PNG logo above the text (resized to 20 mm wide)
+bun run src/cli.ts --printer CXPrinter_DT_369 --image logo.png --image-width 20 --text "Product A"
+
 # Stop at the label boundary after printing (tear-off)
 bun run src/cli.ts --printer CXPrinter_DT_369 --text "Product A" --tear
 
@@ -108,7 +143,7 @@ Run `bun run src/cli.ts --help` for the full list of options.
 ## Using as a library
 
 ```ts
-import { TSPL, NetworkTransport, CupsTransport } from "@node-tsp/core";
+import { TSPL, NetworkTransport, CupsTransport } from "@davidmahbubi/tspl-bridge-core";
 
 const label = new TSPL()
   .size(40, 30)        // mm
@@ -124,6 +159,34 @@ const label = new TSPL()
 await new CupsTransport("CXPrinter_DT_369").send(label.toBuffer()); // USB via CUPS
 await new NetworkTransport("192.168.1.50").send(label.toBuffer()); // network
 ```
+
+### Printing a logo / image
+
+TSPL prints 1-bit monochrome bitmaps via the `BITMAP` command. Convert pixels with
+`monoFromRGBA` (canvas `ImageData`-compatible) or `monoFromGray`, then place the
+result with `.bitmap()`:
+
+```ts
+import { TSPL, monoFromRGBA } from "@davidmahbubi/tspl-bridge-core";
+
+// rgba: Uint8Array of RGBA pixels, e.g. from a canvas (ctx.getImageData(...).data)
+// or a PNG decoder like pngjs. Pixels darker than `threshold` print black;
+// transparent pixels stay white.
+const logo = monoFromRGBA(rgba, width, height, { threshold: 128 });
+
+const label = new TSPL()
+  .size(40, 30)
+  .gap(2)
+  .cls()
+  .bitmap(logo, { x: 16, y: 16 }) // mode: 0 = overwrite (default), 1 = OR, 2 = XOR
+  .text("Arabica Coffee 250g", { x: 16, y: 16 + height + 8 })
+  .print(1);
+```
+
+Sizing tip: at 203 dpi, 8 dots = 1 mm, so a 160-pixel-wide logo prints 20 mm wide.
+Resize/threshold the image before converting — the printer does no scaling. Logos
+with hard black/white contrast print best; `toString()` shows bitmap payloads as a
+`<n bytes>` placeholder, use `toBuffer()` for the real bytes.
 
 78×100 mm shipping label example:
 

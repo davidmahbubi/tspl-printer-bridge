@@ -1,5 +1,5 @@
 {
-  "name": "node-tsp",
+  "name": "@davidmahbubi/tspl-bridge-cli",
   "version": "0.1.0",
   "description": "TSPL label printing app for Bun",
   "type": "module",
@@ -8,7 +8,7 @@
     "tspl-print": "src/cli.ts"
   },
   "dependencies": {
-    "@node-tsp/core": "workspace:*"
+    "@davidmahbubi/tspl-bridge-core": "workspace:*"
   },
   "scripts": {
     "cli": "bun run src/cli.ts",

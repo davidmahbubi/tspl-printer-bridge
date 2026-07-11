@@ -1,5 +1,7 @@
 // TSPL/TSPL2 command builder. Coordinate unit: dots (203 dpi = 8 dots/mm).
 
+import type { MonoBitmap } from "./bitmap";
+
 export type Rotation = 0 | 90 | 180 | 270;
 
 export type BarcodeType =
@@ -45,6 +47,13 @@ export interface BarcodeOptions {
   wide?: number;
 }
 
+export interface BitmapOptions {
+  x: number;
+  y: number;
+  /** 0 = OVERWRITE (default), 1 = OR, 2 = XOR against the image buffer. */
+  mode?: 0 | 1 | 2;
+}
+
 export interface QrCodeOptions {
   x: number;
   y: number;
@@ -60,8 +69,14 @@ function esc(content: string): string {
   return content.replace(/\\/g, "\\\\").replace(/"/g, '\\["]');
 }
 
+/** A command whose payload is raw bytes (e.g. BITMAP), not printable text. */
+interface BinaryCommand {
+  prefix: string;
+  data: Uint8Array;
+}
+
 export class TSPL {
-  private commands: string[] = [];
+  private commands: (string | BinaryCommand)[] = [];
 
   /** Append a raw TSPL command. */
   raw(command: string): this {
@@ -213,6 +228,26 @@ export class TSPL {
     );
   }
 
+  /**
+   * Print a 1-bit monochrome image (logo, etc). Build the MonoBitmap with
+   * monoFromRGBA/monoFromGray, or supply pre-packed data (bit 0 = black,
+   * 8 pixels per byte, MSB first).
+   */
+  bitmap(image: MonoBitmap, opts: BitmapOptions): this {
+    const { x, y, mode = 0 } = opts;
+    const { widthBytes, height, data } = image;
+    if (data.length !== widthBytes * height) {
+      throw new Error(
+        `Bitmap data length mismatch: got ${data.length} bytes, expected ${widthBytes * height} (${widthBytes} bytes × ${height} rows)`
+      );
+    }
+    this.commands.push({
+      prefix: `BITMAP ${x},${y},${widthBytes},${height},${mode},`,
+      data,
+    });
+    return this;
+  }
+
   /** Filled line/box. */
   bar(x: number, y: number, width: number, height: number): this {
     return this.raw(`BAR ${x},${y},${width},${height}`);
@@ -254,11 +289,42 @@ export class TSPL {
     return this.raw(`SOUND ${level},${intervalMs}`);
   }
 
+  /**
+   * Human-readable form, for logging/debugging. Bitmap payloads are shown as
+   * a placeholder — use toBuffer() for the bytes to send to the printer.
+   */
   toString(): string {
-    return this.commands.join("\r\n") + "\r\n";
+    return (
+      this.commands
+        .map((cmd) =>
+          typeof cmd === "string"
+            ? cmd
+            : `${cmd.prefix}<${cmd.data.length} bytes>`
+        )
+        .join("\r\n") + "\r\n"
+    );
   }
 
   toBuffer(): Uint8Array {
-    return new TextEncoder().encode(this.toString());
+    const encoder = new TextEncoder();
+    const crlf = encoder.encode("\r\n");
+    const parts: Uint8Array[] = [];
+    for (const cmd of this.commands) {
+      if (typeof cmd === "string") {
+        parts.push(encoder.encode(cmd));
+      } else {
+        parts.push(encoder.encode(cmd.prefix), cmd.data);
+      }
+      parts.push(crlf);
+    }
+    const out = new Uint8Array(
+      parts.reduce((sum, part) => sum + part.length, 0)
+    );
+    let offset = 0;
+    for (const part of parts) {
+      out.set(part, offset);
+      offset += part.length;
+    }
+    return out;
   }
 }

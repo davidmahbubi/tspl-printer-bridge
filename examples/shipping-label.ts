@@ -12,7 +12,7 @@ import {
   NetworkTransport,
   CupsTransport,
   type Transport,
-} from "@node-tsp/core";
+} from "@davidmahbubi/tspl-bridge-core";
 
 const { values } = parseArgs({
   args: Bun.argv.slice(2),

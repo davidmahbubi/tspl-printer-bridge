@@ -1,5 +1,5 @@
 /**
- * Client helper for TSPL Print Bridge — copy this file into your web app.
+ * Browser SDK for TSPL Print Bridge (@davidmahbubi/tspl-bridge-sdk).
  * No dependencies; works in any browser that supports fetch.
  *
  * Example:
@@ -39,7 +39,9 @@ export type Element =
   | { type: "barcode"; x: number; y: number; content: string; barcodeType?: string; height?: number; humanReadable?: 0 | 1 | 2 | 3; rotation?: 0 | 90 | 180 | 270; narrow?: number; wide?: number }
   | { type: "qrcode"; x: number; y: number; content: string; ecc?: "L" | "M" | "Q" | "H"; cellWidth?: number; mode?: "A" | "M"; rotation?: 0 | 90 | 180 | 270 }
   | { type: "box"; x: number; y: number; xEnd: number; yEnd: number; thickness?: number }
-  | { type: "bar"; x: number; y: number; width: number; height: number };
+  | { type: "bar"; x: number; y: number; width: number; height: number }
+  /** data = PNG as base64 (data URL allowed); width in dots resizes, threshold 0-255 */
+  | { type: "image"; x: number; y: number; data: string; width?: number; threshold?: number; mode?: 0 | 1 | 2 };
 
 export interface PrintRequest {
   label: LabelConfig;

@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# The client SDK's build output is committed so the package is installable
+# straight from GitHub (no build step on the consumer side).
+!packages/client/dist/
 release/
 out/
 *.log
