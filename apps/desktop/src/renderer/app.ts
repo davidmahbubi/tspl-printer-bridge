@@ -23,6 +23,8 @@ declare global {
       stopServer(): Promise<ServerStatus>;
       testPrint(): Promise<{ ok: boolean; error?: string }>;
       regenerateKey(): Promise<string>;
+      exportSettings(): Promise<{ ok: boolean; canceled?: boolean; error?: string }>;
+      importSettings(): Promise<{ ok: boolean; canceled?: boolean; error?: string; config?: AppConfig }>;
       getLogs(): Promise<LogEntry[]>;
       onLog(cb: (entry: LogEntry) => void): void;
       onStatus(cb: (status: ServerStatus) => void): void;
@@ -109,9 +111,7 @@ function note(text: string, isError = false): void {
   }, 4000);
 }
 
-async function init(): Promise<void> {
-  let config = await window.bridge.getConfig();
-
+function populateForm(config: AppConfig): void {
   portInput.value = String(config.port);
   apiKeyInput.value = config.apiKey;
   corsInput.value = config.corsOrigins;
@@ -119,6 +119,12 @@ async function init(): Promise<void> {
   testHeight.value = String(config.testLabel.height);
   autostartCheck.checked = config.autostart;
   autoStartServerCheck.checked = config.autoStartServer;
+}
+
+async function init(): Promise<void> {
+  let config = await window.bridge.getConfig();
+
+  populateForm(config);
   await loadPrinters(config.printer);
   renderStatus(await window.bridge.serverStatus());
   for (const entry of await window.bridge.getLogs()) appendLog(entry);
@@ -156,6 +162,25 @@ async function init(): Promise<void> {
   $("btn-refresh-printers").addEventListener("click", () =>
     loadPrinters(printerSelect.value)
   );
+
+  $("btn-export-settings").addEventListener("click", async () => {
+    const result = await window.bridge.exportSettings();
+    if (result.ok) note("Settings exported ✓");
+    else if (!result.canceled) note(`Export failed: ${result.error}`, true);
+  });
+
+  $("btn-import-settings").addEventListener("click", async () => {
+    const result = await window.bridge.importSettings();
+    if (result.ok && result.config) {
+      config = result.config;
+      populateForm(config);
+      await loadPrinters(config.printer);
+      renderStatus(await window.bridge.serverStatus());
+      note("Settings imported ✓");
+    } else if (!result.canceled) {
+      note(`Import failed: ${result.error}`, true);
+    }
+  });
 
   $("btn-test-print").addEventListener("click", async () => {
     // Save first so the selected printer & test label size take effect

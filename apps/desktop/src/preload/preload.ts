@@ -9,6 +9,8 @@ const api = {
   stopServer: () => ipcRenderer.invoke("server:stop"),
   testPrint: () => ipcRenderer.invoke("test:print"),
   regenerateKey: () => ipcRenderer.invoke("key:regenerate"),
+  exportSettings: () => ipcRenderer.invoke("config:export"),
+  importSettings: () => ipcRenderer.invoke("config:import"),
   getLogs: () => ipcRenderer.invoke("logs:get"),
   onLog: (cb: (entry: unknown) => void) =>
     ipcRenderer.on("bridge-log", (_e, entry) => cb(entry)),

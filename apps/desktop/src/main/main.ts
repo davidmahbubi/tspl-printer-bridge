@@ -1,6 +1,7 @@
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   Menu,
   nativeImage,
@@ -8,7 +9,7 @@ import {
   Tray,
 } from "electron";
 import { join } from "node:path";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import {
   createBridgeServer,
   listPrinters,
@@ -19,6 +20,7 @@ import { TSPL, CupsTransport } from "@node-tsp/core";
 import {
   generateApiKey,
   loadConfig,
+  normalizeConfig,
   saveConfig,
   type AppConfig,
 } from "./config";
@@ -241,6 +243,42 @@ function registerIpc(): void {
     return config.apiKey;
   });
   ipcMain.handle("logs:get", () => logs);
+  ipcMain.handle("config:export", async () => {
+    const { canceled, filePath } = await dialog.showSaveDialog(win!, {
+      title: "Export Settings",
+      defaultPath: "tspl-bridge-settings.json",
+      filters: [{ name: "JSON", extensions: ["json"] }],
+    });
+    if (canceled || !filePath) return { ok: false, canceled: true };
+    try {
+      writeFileSync(filePath, JSON.stringify(config, null, 2));
+      return { ok: true };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: message };
+    }
+  });
+  ipcMain.handle("config:import", async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog(win!, {
+      title: "Import Settings",
+      filters: [{ name: "JSON", extensions: ["json"] }],
+      properties: ["openFile"],
+    });
+    if (canceled || !filePaths[0]) return { ok: false, canceled: true };
+    try {
+      const raw: unknown = JSON.parse(readFileSync(filePaths[0], "utf8"));
+      await applyConfig(normalizeConfig(raw, config));
+      pushLog({
+        time: new Date().toISOString(),
+        level: "info",
+        message: `Settings imported from ${filePaths[0]}`,
+      });
+      return { ok: true, config };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { ok: false, error: message };
+    }
+  });
 }
 
 app.setName("TSPL Print Bridge");

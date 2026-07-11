@@ -70,7 +70,19 @@ h2 {
 .status.running .dot { background: var(--ok); }
 .status.stopped .dot { background: var(--err); }
 
-main { padding: 16px 20px 24px; display: grid; gap: 14px; }
+main {
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+main > section, main > .row { flex: none; }
+section.log-section {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 section {
   background: var(--card);
   border: 1px solid var(--border);
@@ -124,10 +136,8 @@ button.primary:hover { filter: brightness(1.08); }
 
 #log {
   margin: 0;
-  height: 160px;
-  min-height: 80px;
-  max-height: 224px;
-  resize: vertical;
+  flex: 1 1 auto;
+  min-height: 160px;
   overflow-y: auto;
   font-family: ui-monospace, monospace;
   font-size: 11px;

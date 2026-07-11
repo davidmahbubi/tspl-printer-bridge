@@ -48,6 +48,45 @@ export function loadConfig(): AppConfig {
   return cfg;
 }
 
+/** Merge an untrusted settings object into a valid config, field by field. */
+export function normalizeConfig(raw: unknown, base: AppConfig): AppConfig {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    throw new Error("Not a valid settings file");
+  }
+  const r = raw as Partial<AppConfig>;
+  return {
+    port:
+      typeof r.port === "number" && r.port >= 1024 && r.port <= 65535
+        ? Math.floor(r.port)
+        : base.port,
+    apiKey:
+      typeof r.apiKey === "string" && r.apiKey.trim()
+        ? r.apiKey.trim()
+        : base.apiKey,
+    printer: typeof r.printer === "string" ? r.printer : base.printer,
+    corsOrigins:
+      typeof r.corsOrigins === "string" && r.corsOrigins.trim()
+        ? r.corsOrigins.trim()
+        : base.corsOrigins,
+    autostart:
+      typeof r.autostart === "boolean" ? r.autostart : base.autostart,
+    autoStartServer:
+      typeof r.autoStartServer === "boolean"
+        ? r.autoStartServer
+        : base.autoStartServer,
+    testLabel: {
+      width:
+        typeof r.testLabel?.width === "number" && r.testLabel.width > 0
+          ? r.testLabel.width
+          : base.testLabel.width,
+      height:
+        typeof r.testLabel?.height === "number" && r.testLabel.height > 0
+          ? r.testLabel.height
+          : base.testLabel.height,
+    },
+  };
+}
+
 export function saveConfig(cfg: AppConfig): void {
   const path = configPath();
   mkdirSync(dirname(path), { recursive: true });
