@@ -3,8 +3,8 @@
  * TSPL label printing CLI.
  *
  * Examples:
- *   bun run src/cli.ts --host 192.168.1.50 --text "Halo Dunia"
- *   bun run src/cli.ts --printer TSC_TE244 --text "Produk A" --barcode 8991234567890
+ *   bun run src/cli.ts --host 192.168.1.50 --text "Hello World"
+ *   bun run src/cli.ts --printer TSC_TE244 --text "Product A" --barcode 8991234567890
  *   bun run src/cli.ts --host 192.168.1.50 --file label.tspl
  *   bun run src/cli.ts --host 192.168.1.50 --text "Test" --dry-run
  */
@@ -17,37 +17,37 @@ import {
   type Transport,
 } from "@node-tsp/core";
 
-const HELP = `tspl-print — print label ke printer TSPL
+const HELP = `tspl-print — print labels to a TSPL printer
 
-Pemakaian:
-  tspl-print [koneksi] [konten] [opsi label]
+Usage:
+  tspl-print [connection] [content] [label options]
 
-Koneksi (pilih salah satu):
-  --host <ip>          Printer jaringan (TCP port 9100)
-  --port <n>           Port jaringan (default: 9100)
-  --printer <nama>     Printer USB/lokal via CUPS (lihat: lpstat -p)
-  --device <path>      Device path, mis. /dev/usb/lp0
+Connection (pick one):
+  --host <ip>          Network printer (TCP port 9100)
+  --port <n>           Network port (default: 9100)
+  --printer <name>     USB/local printer via CUPS (see: lpstat -p)
+  --device <path>      Device path, e.g. /dev/usb/lp0
 
-Konten:
-  --text <teks>        Baris teks (bisa dipakai berulang kali)
-  --barcode <data>     Barcode Code 128
+Content:
+  --text <text>        Line of text (can be repeated)
+  --barcode <data>     Code 128 barcode
   --qrcode <data>      QR code
-  --file <path>        Kirim file .tspl mentah (mengabaikan opsi konten lain)
+  --file <path>        Send a raw .tspl file (ignores other content options)
 
-Opsi label:
-  --width <mm>         Lebar label mm (default: 40)
-  --height <mm>        Tinggi label mm (default: 30)
-  --gap <mm>           Gap antar label mm (default: 2)
-  --copies <n>         Jumlah salinan (default: 1)
-  --density <0-15>     Kepekatan cetak
-  --tear               Berhenti di pembatas label setelah cetak (SET TEAR ON)
-  --cut <n|batch>      Potong tiap n label, atau "batch" = sekali di akhir job
-                       (butuh printer dengan pisau cutter)
-  --offset <mm>        Geser posisi berhenti/sobek label (kalibrasi)
+Label options:
+  --width <mm>         Label width in mm (default: 40)
+  --height <mm>        Label height in mm (default: 30)
+  --gap <mm>           Gap between labels in mm (default: 2)
+  --copies <n>         Number of copies (default: 1)
+  --density <0-15>     Print density
+  --tear               Stop at the label boundary after printing (SET TEAR ON)
+  --cut <n|batch>      Cut every n labels, or "batch" = once at the end of the job
+                       (requires a printer with a cutter)
+  --offset <mm>        Shift the stop/tear position (calibration)
 
-Lainnya:
-  --dry-run            Tampilkan perintah TSPL tanpa mengirim ke printer
-  --help               Tampilkan bantuan ini
+Other:
+  --dry-run            Show the TSPL commands without sending to the printer
+  --help               Show this help
 `;
 
 const { values } = parseArgs({
@@ -96,7 +96,7 @@ async function buildPayload(): Promise<Uint8Array> {
   const texts = values.text ?? [];
   if (texts.length === 0 && !values.barcode && !values.qrcode) {
     console.error(
-      "Tidak ada konten. Gunakan --text / --barcode / --qrcode / --file. Lihat --help."
+      "No content. Use --text / --barcode / --qrcode / --file. See --help."
     );
     process.exit(1);
   }
@@ -141,10 +141,10 @@ if (values["dry-run"]) {
 const transport = buildTransport();
 if (!transport) {
   console.error(
-    "Tentukan koneksi printer: --host <ip>, --printer <nama>, atau --device <path>. Lihat --help."
+    "Specify a printer connection: --host <ip>, --printer <name>, or --device <path>. See --help."
   );
   process.exit(1);
 }
 
 await transport.send(payload);
-console.log("✓ Label terkirim ke printer.");
+console.log("✓ Label sent to printer.");
