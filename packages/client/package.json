@@ -1,7 +1,15 @@
 {
   "name": "@davidmahbubi/tspl-bridge-sdk",
   "version": "0.1.0",
-  "description": "Browser SDK for TSPL Print Bridge — print labels from web apps",
+  "description": "Browser SDK for TSPL Print Bridge — print labels on TSPL/TSPL2 thermal printers from web apps",
+  "license": "MIT",
+  "author": "David Mahbubi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidmahbubi/tspl-bridge-sdk.git"
+  },
+  "homepage": "https://github.com/davidmahbubi/tspl-bridge-sdk#readme",
+  "keywords": ["tspl", "tspl2", "label", "printer", "thermal", "tsc", "barcode", "print-bridge"],
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
