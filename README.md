@@ -1,4 +1,4 @@
-# node-tsp
+# TSPL Printer Bridge
 
 Toolkit for printing labels on **TSPL/TSPL2** thermal printers (TSC, Xprinter, HPRT, CXPrinter, and compatibles).
 
