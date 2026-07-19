@@ -92,9 +92,45 @@ Try it from a browser: open `examples/web-demo.html`, enter the API key, click P
 ```bash
 cd apps/desktop
 bun run start     # development
-bun run dist      # build .dmg (macOS)
-bun run dist:win  # build Windows installer (NSIS)
 ```
+
+### Building the desktop app (per platform)
+
+Builds are produced with **electron-builder**; the output lands in `apps/desktop/release/`.
+
+**macOS** (.dmg, Apple Silicon/arm64):
+
+```bash
+cd apps/desktop
+bun run dist
+# → release/TSPL Print Bridge-<version>-arm64.dmg
+```
+
+The build is unsigned by default — on other Macs, right-click → Open (or clear the
+quarantine flag with `xattr -dr com.apple.quarantine "/Applications/TSPL Print Bridge.app"`).
+For a notarized build, configure your Developer ID identity via electron-builder's
+standard `CSC_LINK`/`CSC_KEY_PASSWORD` env vars.
+
+**Windows** (NSIS installer, x64):
+
+```bash
+cd apps/desktop
+bun run dist:win
+# → release/TSPL Print Bridge Setup <version>.exe
+```
+
+Can be built from macOS/Linux too — electron-builder downloads the NSIS tooling
+automatically (no Wine needed). Code signing, if wanted, must be configured separately.
+
+**Linux** (AppImage + .deb, x64):
+
+```bash
+cd apps/desktop
+bun run dist:linux
+# → release/TSPL Print Bridge-<version>.AppImage and release/tspl-bridge-desktop_<version>_amd64.deb
+```
+
+Printing by printer name uses CUPS (`lp`), which works on Linux out of the box.
 
 The bridge server can also run without the GUI:
 

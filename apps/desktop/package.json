@@ -9,7 +9,8 @@
     "build": "bun run scripts/build.ts",
     "start": "bun run build && bun run scripts/fix-dev-appname.ts && electron .",
     "dist": "bun run build && electron-builder --mac",
-    "dist:win": "bun run build && electron-builder --win"
+    "dist:win": "bun run build && electron-builder --win --x64",
+    "dist:linux": "bun run build && electron-builder --linux --x64"
   },
   "devDependencies": {
     "@davidmahbubi/tspl-bridge-core": "workspace:*",
@@ -36,6 +37,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Utility"
     }
   }
 }
