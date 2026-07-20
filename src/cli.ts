@@ -11,7 +11,7 @@
 import { parseArgs } from "util";
 import {
   TSPL,
-  CupsTransport,
+  localPrinterTransport,
   FileTransport,
   NetworkTransport,
   monoFromPNG,
@@ -26,7 +26,7 @@ Usage:
 Connection (pick one):
   --host <ip>          Network printer (TCP port 9100)
   --port <n>           Network port (default: 9100)
-  --printer <name>     USB/local printer via CUPS (see: lpstat -p)
+  --printer <name>     USB/local printer via CUPS or Windows spooler
   --device <path>      Device path, e.g. /dev/usb/lp0
 
 Content:
@@ -88,7 +88,7 @@ function buildTransport(): Transport | null {
   if (values.host) {
     return new NetworkTransport(values.host, Number(values.port ?? 9100));
   }
-  if (values.printer) return new CupsTransport(values.printer);
+  if (values.printer) return localPrinterTransport(values.printer);
   if (values.device) return new FileTransport(values.device);
   return null;
 }

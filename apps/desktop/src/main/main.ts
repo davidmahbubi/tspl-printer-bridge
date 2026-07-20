@@ -16,7 +16,7 @@ import {
   type BridgeServer,
   type LogEntry,
 } from "@davidmahbubi/tspl-bridge-server";
-import { TSPL, CupsTransport } from "@davidmahbubi/tspl-bridge-core";
+import { TSPL, localPrinterTransport } from "@davidmahbubi/tspl-bridge-core";
 import {
   generateApiKey,
   loadConfig,
@@ -208,7 +208,7 @@ async function testPrint(): Promise<{ ok: boolean; error?: string }> {
     .setTear(true)
     .print(1);
   try {
-    await new CupsTransport(config.printer).send(label.toBuffer());
+    await localPrinterTransport(config.printer).send(label.toBuffer());
     pushLog({
       time: new Date().toISOString(),
       level: "info",

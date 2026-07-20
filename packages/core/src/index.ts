@@ -15,5 +15,7 @@ export {
   NetworkTransport,
   CupsTransport,
   FileTransport,
+  WindowsSpoolerTransport,
+  localPrinterTransport,
 } from "./transport";
 export type { Transport } from "./transport";

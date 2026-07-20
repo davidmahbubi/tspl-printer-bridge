@@ -2,7 +2,7 @@ import { createServer, type Server, type IncomingMessage, type ServerResponse } 
 import { timingSafeEqual } from "node:crypto";
 import { execFile } from "node:child_process";
 import {
-  CupsTransport,
+  localPrinterTransport,
   NetworkTransport,
   type Transport,
 } from "@davidmahbubi/tspl-bridge-core";
@@ -53,6 +53,29 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export function listPrinters(): Promise<string[]> {
+  if (process.platform === "win32") {
+    return new Promise((resolve) => {
+      execFile(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-NonInteractive",
+          "-Command",
+          "Get-CimInstance -ClassName Win32_Printer | Select-Object -ExpandProperty Name",
+        ],
+        { windowsHide: true },
+        (err, stdout) => {
+          if (err) return resolve([]);
+          resolve(
+            stdout
+              .split(/\r?\n/)
+              .map((line) => line.trim())
+              .filter(Boolean)
+          );
+        }
+      );
+    });
+  }
   return new Promise((resolve) => {
     execFile("lpstat", ["-p"], (err, stdout) => {
       if (err) return resolve([]);
@@ -108,7 +131,7 @@ export function createBridgeServer(config: BridgeConfig): BridgeServer {
         "No printer selected: set a default printer in the bridge app or include a \"printer\" field in the payload"
       );
     }
-    return new CupsTransport(printer);
+    return localPrinterTransport(printer);
   };
 
   const applyCors = (req: IncomingMessage, res: ServerResponse): void => {
